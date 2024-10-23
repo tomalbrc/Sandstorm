@@ -5,6 +5,10 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
+import de.tomalbrc.heatwave.Heatwave;
+import de.tomalbrc.heatwave.component.ParticleComponentMap;
+import gg.moonflower.molangcompiler.api.MolangExpression;
+import gg.moonflower.molangcompiler.api.exception.MolangSyntaxException;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -47,7 +51,20 @@ public class Json {
             .registerTypeHierarchyAdapter(Block.class, new RegistryDeserializer<>(BuiltInRegistries.BLOCK))
             .registerTypeHierarchyAdapter(Item.class, new RegistryDeserializer<>(BuiltInRegistries.ITEM))
             .registerTypeHierarchyAdapter(SoundEvent.class, new RegistryDeserializer<>(BuiltInRegistries.SOUND_EVENT))
+            .registerTypeHierarchyAdapter(ParticleComponentMap.class, new ParticleComponentMap.Deserializer())
+            .registerTypeHierarchyAdapter(MolangExpression.class, new MolangExpressionDeserializer())
             .create();
+
+    public static class MolangExpressionDeserializer implements JsonDeserializer<MolangExpression> {
+        @Override
+        public MolangExpression deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            try {
+                return Heatwave.MOLANG.compile(json.getAsString());
+            } catch (MolangSyntaxException e) {
+                throw new JsonParseException(e);
+            }
+        }
+    }
 
     public static class BlockStateDeserializer implements JsonDeserializer<BlockState> {
         @Override
