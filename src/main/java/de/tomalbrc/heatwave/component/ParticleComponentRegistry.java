@@ -11,7 +11,7 @@ import java.util.Map;
 public class ParticleComponentRegistry {
     private static final Map<ResourceLocation, ParticleComponentType<? extends ParticleComponent<?>, ?>> COMPONENT_MAP = new Object2ObjectOpenHashMap<>();
 
-    public static <T extends ParticleComponent<E>,E> ParticleComponentType<T, E> registerComponent(ResourceLocation resourceLocation, Class<T> type) {
+    public static <T extends ParticleComponent<E>, E> ParticleComponentType<T, E> registerComponent(ResourceLocation resourceLocation, Class<T> type) {
         Class<E> configType = ParticleComponentRegistry.inferConfigType(type);
         ParticleComponentType<T, E> particleComponentType = new ParticleComponentType<>(resourceLocation, type, configType);
         COMPONENT_MAP.put(resourceLocation, particleComponentType);
@@ -23,7 +23,7 @@ public class ParticleComponentRegistry {
         Type[] genericInterfaces = componentClass.getGenericInterfaces();
         for (Type genericInterface : genericInterfaces) {
             if (genericInterface instanceof ParameterizedType parameterizedType) {
-                return (Class<E>)parameterizedType.getActualTypeArguments()[0];
+                return (Class<E>) parameterizedType.getActualTypeArguments()[0];
             }
         }
         return null;

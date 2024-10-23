@@ -11,21 +11,21 @@ import java.util.function.BiConsumer;
 
 @SuppressWarnings("unchecked")
 public class ParticleComponentMap {
-    private final Map<ParticleComponentType<? extends ParticleComponent<?>,?>, Object> componentMap = new Object2ObjectOpenHashMap<>();
+    private final Map<ParticleComponentType<? extends ParticleComponent<?>, ?>, Object> componentMap = new Object2ObjectOpenHashMap<>();
 
-    public void put(ParticleComponentType<?,?> type, Object config) {
+    public void put(ParticleComponentType<?, ?> type, Object config) {
         this.componentMap.put(type, config);
     }
 
-    public <T extends ParticleComponent<E>,E> E get(ParticleComponentType<T,E> type) {
+    public <T extends ParticleComponent<E>, E> E get(ParticleComponentType<T, E> type) {
         return (E) this.componentMap.get(type);
     }
 
-    public <T extends ParticleComponent<E>,E> boolean has(ParticleComponentType<T,E> type) {
+    public <T extends ParticleComponent<E>, E> boolean has(ParticleComponentType<T, E> type) {
         return this.componentMap.containsKey(type);
     }
 
-    public <T extends ParticleComponent<E>,E> void forEach(BiConsumer<ParticleComponentType<T,E>, Object> biConsumer) {
+    public <T extends ParticleComponent<E>, E> void forEach(BiConsumer<ParticleComponentType<T, E>, Object> biConsumer) {
         for (Map.Entry<ParticleComponentType<? extends ParticleComponent<?>, ?>, Object> entry : this.componentMap.entrySet()) {
             biConsumer.accept((ParticleComponentType<T, E>) entry.getKey(), entry.getValue());
         }
