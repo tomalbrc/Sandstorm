@@ -11,23 +11,31 @@ import java.util.function.BiConsumer;
 
 @SuppressWarnings("unchecked")
 public class ParticleComponentMap {
-    private final Map<ParticleComponentType<? extends ParticleComponent<?>, ?>, Object> componentMap = new Object2ObjectOpenHashMap<>();
+    private final Map<ParticleComponentType<? extends ParticleComponent>, ParticleComponent> componentMap = new Object2ObjectOpenHashMap<>();
 
-    public void put(ParticleComponentType<?, ?> type, Object config) {
-        this.componentMap.put(type, config);
+    public void put(ParticleComponentType<?> type, ParticleComponent component) {
+        this.componentMap.put(type, component);
     }
 
-    public <T extends ParticleComponent<E>, E> E get(ParticleComponentType<T, E> type) {
-        return (E) this.componentMap.get(type);
+    public <T extends ParticleComponent> T get(ParticleComponentType<T> type) {
+        return (T) this.componentMap.get(type);
     }
 
-    public <T extends ParticleComponent<E>, E> boolean has(ParticleComponentType<T, E> type) {
+    public <T extends ParticleComponent> boolean has(ParticleComponentType<T> type) {
         return this.componentMap.containsKey(type);
     }
 
-    public <T extends ParticleComponent<E>, E> void forEach(BiConsumer<ParticleComponentType<T, E>, Object> biConsumer) {
-        for (Map.Entry<ParticleComponentType<? extends ParticleComponent<?>, ?>, Object> entry : this.componentMap.entrySet()) {
-            biConsumer.accept((ParticleComponentType<T, E>) entry.getKey(), entry.getValue());
+    public void from(ParticleComponentMap componentMap) {
+        if (componentMap != null) componentMap.forEach(this::put);
+    }
+
+    public <T extends ParticleComponent> void set(ParticleComponentType<T> type, ParticleComponent value) {
+        this.componentMap.put(type, value);
+    }
+
+    public <T extends ParticleComponent> void forEach(BiConsumer<ParticleComponentType<T>, ParticleComponent> biConsumer) {
+        for (Map.Entry<ParticleComponentType<? extends ParticleComponent>, ParticleComponent> entry : this.componentMap.entrySet()) {
+            biConsumer.accept((ParticleComponentType<T>) entry.getKey(), entry.getValue());
         }
     }
 
@@ -45,16 +53,16 @@ public class ParticleComponentMap {
                 if (entry.getKey().contains(":"))
                     resourceLocation = ResourceLocation.parse(entry.getKey());
                 else
-                    resourceLocation = ResourceLocation.fromNamespaceAndPath(Heatwave.MOD_ID, entry.getKey());
+                    resourceLocation = ResourceLocation.withDefaultNamespace(entry.getKey());
 
-                var componentType = ParticleComponentRegistry.getType(resourceLocation);
+                ParticleComponentType<ParticleComponent> componentType = ParticleComponentRegistry.getType(resourceLocation);
 
-                if (componentType == null || componentType.configType() == null) {
+                if (componentType == null) {
                     Heatwave.LOGGER.error("Could not load particle component {}", resourceLocation);
                     continue;
                 }
-                var clazz = componentType.configType();
-                Object deserialized = jsonDeserializationContext.deserialize(entry.getValue(), clazz);
+
+                ParticleComponent deserialized = jsonDeserializationContext.deserialize(entry.getValue(), componentType.type());
                 particleComponentMap.put(ParticleComponentRegistry.getType(resourceLocation), deserialized);
             }
             return particleComponentMap;
