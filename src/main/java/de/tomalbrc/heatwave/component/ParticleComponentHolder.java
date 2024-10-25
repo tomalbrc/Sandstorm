@@ -4,15 +4,15 @@ public interface ParticleComponentHolder {
 
     ParticleComponentMap components();
 
-    default <T extends ParticleComponent> T get(ParticleComponentType<T> componentType) {
+    default <T extends ParticleComponent<?>> T get(ParticleComponentType<T> componentType) {
         return this.components().get(componentType);
     }
 
-    default <T extends ParticleComponent> boolean has(ParticleComponentType<T> componentType) {
+    default <T extends ParticleComponent<?>> boolean has(ParticleComponentType<T> componentType) {
         return this.components().has(componentType);
     }
 
-    default <T extends ParticleComponent> void set(ParticleComponentType<T> behaviourType, T value) {
+    default <T extends ParticleComponent<?>> void set(ParticleComponentType<T> behaviourType, T value) {
         this.components().set(behaviourType, value);
     }
 

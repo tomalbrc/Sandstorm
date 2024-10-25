@@ -20,10 +20,16 @@ public class Heatwave implements ModInitializer {
     public void onInitialize() {
         ParticleComponents.init();
 
-        InputStream stream = Heatwave.class.getResourceAsStream("/particle/rainbow.particle.json");
+        var effect1 = effect("/particle/rainbow.particle.json");
+        var effect2 = effect("/particle/smoke.json");
+    }
+    private ParticleEffectFile effect(String path) {
+        InputStream stream = Heatwave.class.getResourceAsStream(path);
         if (stream != null) {
             ParticleEffectFile effectFile = Json.GSON.fromJson(new InputStreamReader(stream), ParticleEffectFile.class);
             LOGGER.info(effectFile.toString());
+            return effectFile;
         }
+        return null;
     }
 }

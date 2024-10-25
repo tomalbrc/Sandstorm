@@ -2,6 +2,6 @@ package de.tomalbrc.heatwave.component.particle;
 
 import de.tomalbrc.heatwave.component.ParticleComponent;
 
-public class ParticleAppearanceLighting implements ParticleComponent {
+public class ParticleAppearanceLighting implements ParticleComponent<ParticleAppearanceLighting> {
     // No fields required; just existence is enough
 }

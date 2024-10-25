@@ -7,7 +7,7 @@ import de.tomalbrc.heatwave.component.particle.config.EventConfig;
 import java.util.List;
 
 // Particle Motion Components
-public class ParticleMotionCollision implements ParticleComponent {
+public class ParticleMotionCollision implements ParticleComponent<ParticleMotionCollision> {
     @SerializedName("enabled")
     public boolean enabled = true;
     @SerializedName("collision_drag")

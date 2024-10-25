@@ -5,7 +5,7 @@ import de.tomalbrc.heatwave.component.ParticleComponent;
 
 import java.util.Map;
 
-public class ParticleLifetimeEvents implements ParticleComponent {
+public class ParticleLifetimeEvents implements ParticleComponent<ParticleLifetimeEvents> {
     @SerializedName("creation_event")
     public String[] creationEvent;
     @SerializedName("expiration_event")

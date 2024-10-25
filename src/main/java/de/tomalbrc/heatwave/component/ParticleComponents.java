@@ -39,11 +39,11 @@ public class ParticleComponents {
     public static final ParticleComponentType<ParticleAppearanceLighting> PARTICLE_APPEARANCE_LIGHTING = registerVanillaComponent("particle_appearance_lighting", ParticleAppearanceLighting.class);
     public static final ParticleComponentType<ParticleAppearanceTinting> PARTICLE_APPEARANCE_TINTING = registerVanillaComponent("particle_appearance_tinting", ParticleAppearanceTinting.class);
 
-    private static <T extends ParticleComponent, E> ParticleComponentType<T> registerVanillaComponent(String name, Class<T> type) {
+    private static <T extends ParticleComponent<?>, E> ParticleComponentType<T> registerVanillaComponent(String name, Class<T> type) {
         return ParticleComponentRegistry.registerComponent(ResourceLocation.withDefaultNamespace(name), type);
     }
 
-    private static <T extends ParticleComponent, E> ParticleComponentType<T> registerComponent(String name, Class<T> type) {
+    private static <T extends ParticleComponent<?>, E> ParticleComponentType<T> registerComponent(String name, Class<T> type) {
         return ParticleComponentRegistry.registerComponent(ResourceLocation.fromNamespaceAndPath(Heatwave.MOD_ID, name), type);
     }
 

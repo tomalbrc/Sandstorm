@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 
-public class EmitterRateSteady implements ParticleComponent {
+public class EmitterRateSteady implements ParticleComponent<EmitterRateSteady> {
     @SerializedName("spawn_rate")
     public MolangExpression spawnRate = MolangExpression.of(1); // default: 1
 

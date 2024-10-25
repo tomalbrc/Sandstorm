@@ -3,7 +3,7 @@ package de.tomalbrc.heatwave.component.emitter;
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
 
-public class EmitterLocalSpace implements ParticleComponent {
+public class EmitterLocalSpace implements ParticleComponent<EmitterLocalSpace> {
     @SerializedName("position")
     public boolean position = false; // default: false
 

@@ -5,7 +5,7 @@ import de.tomalbrc.heatwave.component.ParticleComponent;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 
 // Initial State Components
-public class EmitterInitialization implements ParticleComponent {
+public class EmitterInitialization implements ParticleComponent<EmitterInitialization> {
     @SerializedName("creation_expression")
     public MolangExpression creationExpression; // run once at startup
 

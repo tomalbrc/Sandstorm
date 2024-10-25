@@ -47,7 +47,6 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
 
         for (int i = 0; i < particlesToSpawn; i++) {
             this.addElement(new ParticleElement(this));
-
         }
 
         // Update the last spawn time
@@ -63,10 +62,8 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
                 lastSpawnAmount--;
             }
         }
-
-
-        // todo: update positions/velocity/gravity/collision checks
     }
+
     @Override
     public <T extends VirtualElement> T addElement(T element) {
         if (element instanceof ParticleElement particleElement)

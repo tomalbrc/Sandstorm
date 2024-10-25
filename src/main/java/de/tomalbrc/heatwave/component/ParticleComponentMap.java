@@ -5,23 +5,24 @@ import de.tomalbrc.heatwave.Heatwave;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.resources.ResourceLocation;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
 @SuppressWarnings("unchecked")
 public class ParticleComponentMap {
-    private final Map<ParticleComponentType<? extends ParticleComponent>, ParticleComponent> componentMap = new Object2ObjectOpenHashMap<>();
+    private final Map<ParticleComponentType<? extends ParticleComponent<?>>, ParticleComponent<?>> componentMap = new Object2ObjectOpenHashMap<>();
 
-    public void put(ParticleComponentType<?> type, ParticleComponent component) {
+    public void put(ParticleComponentType<?> type, ParticleComponent<?> component) {
         this.componentMap.put(type, component);
     }
 
-    public <T extends ParticleComponent> T get(ParticleComponentType<T> type) {
+    public <T extends ParticleComponent<?>> T get(ParticleComponentType<T> type) {
         return (T) this.componentMap.get(type);
     }
 
-    public <T extends ParticleComponent> boolean has(ParticleComponentType<T> type) {
+    public <T extends ParticleComponent<?>> boolean has(ParticleComponentType<T> type) {
         return this.componentMap.containsKey(type);
     }
 
@@ -29,12 +30,12 @@ public class ParticleComponentMap {
         if (componentMap != null) componentMap.forEach(this::put);
     }
 
-    public <T extends ParticleComponent> void set(ParticleComponentType<T> type, ParticleComponent value) {
+    public <T extends ParticleComponent<?>> void set(ParticleComponentType<T> type, ParticleComponent<?> value) {
         this.componentMap.put(type, value);
     }
 
-    public <T extends ParticleComponent> void forEach(BiConsumer<ParticleComponentType<T>, ParticleComponent> biConsumer) {
-        for (Map.Entry<ParticleComponentType<? extends ParticleComponent>, ParticleComponent> entry : this.componentMap.entrySet()) {
+    public <T extends ParticleComponent<?>> void forEach(BiConsumer<ParticleComponentType<T>, ParticleComponent<?>> biConsumer) {
+        for (Map.Entry<ParticleComponentType<? extends ParticleComponent<?>>, ParticleComponent<?>> entry : this.componentMap.entrySet()) {
             biConsumer.accept((ParticleComponentType<T>) entry.getKey(), entry.getValue());
         }
     }
@@ -55,17 +56,34 @@ public class ParticleComponentMap {
                 else
                     resourceLocation = ResourceLocation.withDefaultNamespace(entry.getKey());
 
-                ParticleComponentType<ParticleComponent> componentType = ParticleComponentRegistry.getType(resourceLocation);
+                ParticleComponentType<ParticleComponent<?>> componentType = ParticleComponentRegistry.getType(resourceLocation);
 
                 if (componentType == null) {
                     Heatwave.LOGGER.error("Could not load particle component {}", resourceLocation);
                     continue;
                 }
 
-                ParticleComponent deserialized = jsonDeserializationContext.deserialize(entry.getValue(), componentType.type());
+                ParticleComponent<?> deserialized;
+                if (entry.getValue().isJsonPrimitive() && entry.getValue().getAsJsonPrimitive().isNumber()) {
+                    float value = entry.getValue().getAsFloat();
+                    deserialized = createNumericComponent(componentType, value);
+                } else {
+                    deserialized = jsonDeserializationContext.deserialize(entry.getValue(), componentType.type());
+                }
+
                 particleComponentMap.put(ParticleComponentRegistry.getType(resourceLocation), deserialized);
             }
             return particleComponentMap;
+        }
+    }
+
+    private static ParticleComponent<?> createNumericComponent(ParticleComponentType<ParticleComponent<?>> componentType, float value) {
+        Class<? extends ParticleComponent<?>> clazz = componentType.type();
+        try {
+            Constructor<? extends ParticleComponent<?>> constructor = clazz.getConstructor(float.class);
+            return constructor.newInstance(value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }
