@@ -7,6 +7,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.component.ParticleComponentMap;
+import de.tomalbrc.heatwave.curve.*;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.exception.MolangSyntaxException;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
@@ -53,7 +54,31 @@ public class Json {
             .registerTypeHierarchyAdapter(SoundEvent.class, new RegistryDeserializer<>(BuiltInRegistries.SOUND_EVENT))
             .registerTypeHierarchyAdapter(ParticleComponentMap.class, new ParticleComponentMap.Deserializer())
             .registerTypeHierarchyAdapter(MolangExpression.class, new MolangExpressionDeserializer())
+            .registerTypeAdapter(Curve.class, new CurveDeserializer())
             .create();
+
+    public static class CurveDeserializer implements JsonDeserializer<Curve> {
+        @Override
+        public Curve deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            if (json.isJsonObject()) {
+                var typeElement = json.getAsJsonObject().get("type");
+                if (typeElement != null && typeElement.isJsonPrimitive() && typeElement.getAsJsonPrimitive().isString()) {
+                    String type = typeElement.getAsJsonPrimitive().getAsString();
+                    switch (type) {
+                        case "linear":
+                            return context.deserialize(json, LinearCurve.class);
+                        case "catmull_rom":
+                            return context.deserialize(json, CatmullRomCurve.class);
+                        case "bezier":
+                            return context.deserialize(json, BezierCurve.class);
+                        case "bezier_chain":
+                            return context.deserialize(json, BezierChainCurve.class);
+                    }
+                }
+            }
+            return null;
+        }
+    }
 
     public static class MolangExpressionDeserializer implements JsonDeserializer<MolangExpression> {
         @Override

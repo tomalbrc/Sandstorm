@@ -1,15 +1,14 @@
 package de.tomalbrc.heatwave;
 
 import com.mojang.logging.LogUtils;
+import de.tomalbrc.heatwave.command.HeatwaveCommand;
 import de.tomalbrc.heatwave.component.ParticleComponents;
-import de.tomalbrc.heatwave.io.Json;
-import de.tomalbrc.heatwave.io.ParticleEffectFile;
+import de.tomalbrc.heatwave.util.ParticleModels;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import gg.moonflower.molangcompiler.api.MolangCompiler;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import org.slf4j.Logger;
-
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 public class Heatwave implements ModInitializer {
     public static final Logger LOGGER = LogUtils.getLogger();
@@ -19,17 +18,12 @@ public class Heatwave implements ModInitializer {
     @Override
     public void onInitialize() {
         ParticleComponents.init();
+        Particles.init();
 
-        var effect1 = effect("/particle/rainbow.particle.json");
-        var effect2 = effect("/particle/smoke.json");
-    }
-    private ParticleEffectFile effect(String path) {
-        InputStream stream = Heatwave.class.getResourceAsStream(path);
-        if (stream != null) {
-            ParticleEffectFile effectFile = Json.GSON.fromJson(new InputStreamReader(stream), ParticleEffectFile.class);
-            LOGGER.info(effectFile.toString());
-            return effectFile;
-        }
-        return null;
+        CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> {
+            HeatwaveCommand.register(dispatcher);
+        });
+
+        PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(ParticleModels::addToResourcePack);
     }
 }

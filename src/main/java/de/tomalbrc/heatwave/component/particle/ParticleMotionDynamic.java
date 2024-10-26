@@ -1,15 +1,19 @@
 package de.tomalbrc.heatwave.component.particle;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
+import gg.moonflower.molangcompiler.api.MolangExpression;
+
+import java.util.List;
 
 public class ParticleMotionDynamic implements ParticleComponent<ParticleMotionDynamic> {
     @SerializedName("linear_acceleration")
-    public float[] linearAcceleration = new float[3];
+    public List<MolangExpression> linearAcceleration = ImmutableList.of(MolangExpression.of(0), MolangExpression.of(0), MolangExpression.of(0));
     @SerializedName("linear_drag_coefficient")
-    public float linearDragCoefficient = 0.0f;
+    public MolangExpression linearDragCoefficient = MolangExpression.of(0);
     @SerializedName("rotation_acceleration")
-    public float rotationAcceleration = 0.0f;
+    public MolangExpression rotationAcceleration = MolangExpression.of(0);
     @SerializedName("rotation_drag_coefficient")
-    public float rotationDragCoefficient = 0.0f;
+    public MolangExpression rotationDragCoefficient = MolangExpression.of(0);
 }

@@ -13,24 +13,13 @@
         "type": "catmull_rom",
         "input": "variable.particle_random_2",
         "horizontal_range": 1,
-        "nodes": [
-          1,
-          0,
-          1,
-          1.18
-        ]
+        "nodes": [1, 0, 1, 1.18]
       },
       "variable.psize": {
         "type": "catmull_rom",
         "input": "variable.particle_age",
         "horizontal_range": "variable.particle_lifetime",
-        "nodes": [
-          0,
-          0,
-          1,
-          0,
-          0
-        ]
+        "nodes": [0, 0, 1, 0, 0]
       }
     },
     "components": {
@@ -45,53 +34,36 @@
         "active_time": 2
       },
       "minecraft:emitter_shape_point": {
-        "offset": [
-          "math.cos(variable.emitter_age * 90) * (2.5-variable.particle_random_2)",
-          "math.sin(variable.emitter_age * 90) * (2.5-variable.particle_random_2)",
-          0
-        ]
+        "offset": ["math.cos(variable.emitter_age * 90) * (2.5-variable.particle_random_2)", "math.sin(variable.emitter_age * 90) * (2.5-variable.particle_random_2)", 0]
       },
       "minecraft:particle_lifetime_expression": {
         "max_lifetime": 1.5
       },
       "minecraft:particle_initial_speed": 0,
       "minecraft:particle_motion_dynamic": {
-        "linear_acceleration": [
-          0,
-          1,
-          0
-        ]
+        "linear_acceleration": [0, 1, 0]
       },
       "minecraft:particle_appearance_billboard": {
-        "size": [
-          "0.12 * variable.psize",
-          "0.12 * variable.psize"
-        ],
+        "size": ["0.12 * variable.psize", "0.12 * variable.psize"],
         "facing_camera_mode": "rotate_xyz",
         "uv": {
           "texture_width": 128,
           "texture_height": 128,
-          "uv": [
-            32,
-            88
-          ],
-          "uv_size": [
-            8,
-            8
-          ]
+          "uv": [32, 16],
+          "uv_size": [32, 32]
         }
       },
       "minecraft:particle_appearance_tinting": {
         "color": {
           "interpolant": "variable.rainbow",
           "gradient": {
-            "0.0": "#d71c1c",
-            "0.16": "#ffdf00",
-            "0.33": "#08ff00",
-            "0.5": "#00ffff",
-            "0.67": "#0000ff",
-            "0.83": "#ff00ff",
-            "1.0": "#e21111"
+            "0.0": "#ffd71c1c",
+            "0.16": "#ffffdf00",
+            "0.33": "#ff08ff00",
+            "0.5": "#ff00ffff",
+            "0.67": "#ff0000ff",
+            "0.83": "#ffff00ff",
+            "1.0": "#ffe21111"
           }
         }
       }

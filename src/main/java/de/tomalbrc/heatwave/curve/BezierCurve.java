@@ -7,15 +7,15 @@ import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 
 import java.util.List;
 
-public class CatmullRomCurve implements Curve {
+public class BezierCurve implements Curve {
     public List<MolangExpression> nodes;
     public MolangExpression input;
 
     @SerializedName("horizontal_range")
     public MolangExpression horizontalRange = MolangExpression.of(1.f);
 
+
     public float evaluate(MolangEnvironment environment) throws MolangRuntimeException {
-        var i = environment.resolve(this.input);
-        return i;
+        return environment.resolve(this.input);
     }
 }

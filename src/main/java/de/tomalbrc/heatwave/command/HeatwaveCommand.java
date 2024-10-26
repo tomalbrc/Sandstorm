@@ -2,6 +2,8 @@ package de.tomalbrc.heatwave.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import de.tomalbrc.heatwave.Heatwave;
+import de.tomalbrc.heatwave.Particles;
 import de.tomalbrc.heatwave.polymer.ParticleEffectHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
 import me.lucko.fabric.api.permissions.v0.Permissions;
@@ -19,7 +21,7 @@ public class HeatwaveCommand {
     private static int execute(CommandContext<CommandSourceStack> context) {
         var player = context.getSource().getPlayer();
         if (player != null) {
-            var holder = new ParticleEffectHolder();
+            var holder = new ParticleEffectHolder(Particles.RAINBOW);
             ChunkAttachment.ofTicking(holder, player.serverLevel(), player.position());
         }
         return 0;

@@ -16,4 +16,18 @@ public class ParticleAppearanceBillboard implements ParticleComponent<ParticleAp
 
     @SerializedName("direction")
     public DirectionConfig direction = new DirectionConfig();
+
+    public UvConfig uv;
+
+    public static class UvConfig {
+        @SerializedName("texture_width")
+        public int textureWidth;
+        @SerializedName("texture_height")
+        public int textureHeight;
+
+        public List<MolangExpression> uv;
+
+        @SerializedName("uv_size")
+        public List<MolangExpression> uvSize;
+    }
 }
