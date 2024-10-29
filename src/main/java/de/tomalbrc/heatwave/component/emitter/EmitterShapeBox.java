@@ -1,16 +1,20 @@
 package de.tomalbrc.heatwave.component.emitter;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
+import gg.moonflower.molangcompiler.api.MolangExpression;
+
+import java.util.List;
 
 public class EmitterShapeBox implements ParticleComponent<EmitterShapeBox> {
     @SerializedName("offset")
-    public float[] offset = new float[]{0.0f, 0.0f, 0.0f}; // default: [0, 0, 0]
+    public List<MolangExpression> offset = ImmutableList.of(MolangExpression.of(0), MolangExpression.of(0), MolangExpression.of(0)); // default: [0, 0, 0]
 
     @SerializedName("half_dimensions")
-    public float[] halfDimensions; // specify dimensions
+    public List<MolangExpression> halfDimensions = ImmutableList.of(MolangExpression.of(0), MolangExpression.of(0), MolangExpression.of(0)); // default: [0, 0, 0]
 
     @SerializedName("surface_only")
     public boolean surfaceOnly = false; // default: false

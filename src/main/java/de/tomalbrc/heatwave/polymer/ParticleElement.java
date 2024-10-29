@@ -1,5 +1,6 @@
 package de.tomalbrc.heatwave.polymer;
 
+import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.util.ParticleModels;
 import de.tomalbrc.heatwave.util.ColorUtil;
 import de.tomalbrc.heatwave.component.ParticleComponent;
@@ -11,14 +12,17 @@ import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.util.Brightness;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import java.util.List;
 
@@ -36,7 +40,6 @@ public class ParticleElement extends ItemDisplayElement {
     protected boolean removed;
     protected int age;
     protected float roll;
-    protected float friction = 0.98f;
     protected boolean speedUpWhenYMotionIsBlocked = false;
 
     protected double xo;
@@ -49,6 +52,8 @@ public class ParticleElement extends ItemDisplayElement {
     protected double yd;
     protected double zd;
 
+    private final boolean physics;
+
     protected float bbRadius = 0.6f;
 
     protected final float random_1 = (float) Math.random();
@@ -57,24 +62,25 @@ public class ParticleElement extends ItemDisplayElement {
     protected final float random_4 = (float) Math.random();
 
     private final ParticleEffectHolder parent;
+    private final ItemStack item;
 
     public ParticleElement(ParticleEffectHolder particleEffectHolder) throws MolangRuntimeException {
         this.parent = particleEffectHolder;
+        this.physics = parent.has(ParticleComponents.PARTICLE_MOTION_COLLISION);
 
         if (particleEffectHolder.has(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION)) {
             this.maxLifetime = this.get(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION).maxLifetime;
             this.lifetimeExpression = particleEffectHolder.get(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION).expirationExpression;
         }
 
-        this.setPos(particleEffectHolder.getPos().x, particleEffectHolder.getPos().y, particleEffectHolder.getPos().z);
-
-        if (this.parent.has(ParticleComponents.PARTICLE_MOTION_COLLISION)) {
+        if (this.physics) {
             this.bbRadius = this.parent.get(ParticleComponents.PARTICLE_MOTION_COLLISION).collisionRadius;
         }
 
-        ItemStack item = ParticleModels.modelData(particleEffectHolder.getEffectFile()).asStack();
-        item.set(DataComponents.DYED_COLOR, new DyedItemColor(ColorUtil.hslToRgb(this.maxLifetime == null ? 1 : (float) (1.f - this.age * (1.0 / 20.0) / parent.runtime().resolve(this.maxLifetime)),1,1), false));
-        this.setItem(item);
+        this.updateRuntimePerParticle(this.parent.runtime());
+        this.setPos(particleEffectHolder.particleOffset().x, particleEffectHolder.particleOffset().y, particleEffectHolder.particleOffset().z);
+
+        this.item = ParticleModels.modelData(particleEffectHolder.getEffectFile()).asStack();
 
         if (this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD))
             this.setBillboardMode(Display.BillboardConstraints.CENTER);
@@ -82,6 +88,20 @@ public class ParticleElement extends ItemDisplayElement {
         this.setSendPositionUpdates(true);
         this.setInterpolationDuration(2);
         this.setTeleportDuration(1);
+
+        if (!this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_LIGHTING))
+            this.setBrightness(Brightness.FULL_BRIGHT);
+    }
+
+    public void updateRuntimePerParticle(MolangRuntime runtime) throws MolangRuntimeException {
+        var rt = runtime.edit();
+        rt.setVariable("particle_random_1", this.random_1);
+        rt.setVariable("particle_random_2", this.random_2);
+        rt.setVariable("particle_random_3", this.random_3);
+        rt.setVariable("particle_random_4", this.random_4);
+
+        rt.setVariable("particle_age", this.age*(1.f/20.f));
+        rt.setVariable("particle_lifetime", runtime.resolve(this.maxLifetime));
     }
 
     public void setDelta(double xd, double yd, double zd) {
@@ -105,21 +125,12 @@ public class ParticleElement extends ItemDisplayElement {
     }
 
     private boolean alive(int age) throws MolangRuntimeException {
-        return this.maxLifetime != null && this.age*(1.0/20.0) < this.parent.runtime().resolve(this.maxLifetime) || this.lifetimeExpression != null && this.parent.runtime().resolve(this.lifetimeExpression) != 0;
-    }
-
-    private void modifyRuntime(MolangRuntime runtime) {
-        var rt = runtime.edit();
-        rt.setVariable("particle_random_1", this.random_1);
-        rt.setVariable("particle_random_2", this.random_2);
-        rt.setVariable("particle_random_3", this.random_3);
-        rt.setVariable("particle_random_4", this.random_4);
+        var scaledAge = (float)this.age*(1.0/20.0);
+        return this.maxLifetime != null && scaledAge < this.parent.runtime().resolve(this.maxLifetime) || this.lifetimeExpression != null && age < this.parent.runtime().resolve(this.lifetimeExpression);
     }
 
     @Override
     public void tick() {
-        this.modifyRuntime(this.parent.runtime());
-
         try {
             this.xo = this.x;
             this.yo = this.y;
@@ -130,35 +141,30 @@ public class ParticleElement extends ItemDisplayElement {
             }
 
             if (this.parent.has(ParticleComponents.PARTICLE_MOTION_DYNAMIC)) {
-                this.xd += this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearAcceleration.get(0))*(1/16.0);
-                this.yd += this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearAcceleration.get(1))*(1/16.0);
-                this.zd += this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearAcceleration.get(2))*(1/16.0);
+                this.xd += this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearAcceleration.get(0));
+                this.yd += this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearAcceleration.get(1));
+                this.zd += this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearAcceleration.get(2));
             }
 
             this.move(this.xd, this.yd, this.zd);
 
-            if (this.parent.has(ParticleComponents.PARTICLE_MOTION_DYNAMIC) && (this.y == this.yo || this.x == this.xo || this.z == this.zo)) {
+            if (this.parent.has(ParticleComponents.PARTICLE_MOTION_DYNAMIC)) {
                 var val = this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearDragCoefficient);
                 this.xd *= val;
                 this.yd *= val;
                 this.zd *= val;
             }
 
-            this.xd *= this.friction;
-            this.yd *= this.friction;
-            this.zd *= this.friction;
-
             if (this.onGround) {
                 this.xd *= 0.7f;
                 this.zd *= 0.7f;
             }
 
-            this.onTick();
+            this.updateElementTick();
         }
         catch (Exception e) {
             e.printStackTrace();
         }
-        
     }
 
     public void setPos(double d, double d2, double d3) {
@@ -180,24 +186,29 @@ public class ParticleElement extends ItemDisplayElement {
         double tmpY = ny;
         double tmpZ = nz;
 
-        if (parent.has(ParticleComponents.PARTICLE_MOTION_COLLISION) && (nx != 0.0 || ny != 0.0 || nz != 0.0) && nx * nx + ny * ny + nz * nz < MAX_COLLISION_VELOCITY) {
-            Vec3 vec3 = Entity.collideBoundingBox(null, new Vec3(nx, ny, nz), this.getBoundingBox(), this.parent.getAttachment().getWorld(), List.of());
-            nx = vec3.x;
-            ny = vec3.y;
-            nz = vec3.z;
-            if (Math.abs(ny) < (double)1.0E-5f) {
-                float coefficientOfRestitution = parent.get(ParticleComponents.PARTICLE_MOTION_COLLISION).coefficientOfRestitution;
-                yd = coefficientOfRestitution * -this.yd;
+        if (this.physics) {
+            if ((nx != 0.0 || ny != 0.0 || nz != 0.0) && nx * nx + ny * ny + nz * nz < MAX_COLLISION_VELOCITY) {
+                Vec3 vec3 = Entity.collideBoundingBox(null, new Vec3(nx, ny, nz), this.getBoundingBox(), this.parent.getAttachment().getWorld(), List.of());
+                nx = vec3.x;
+                ny = vec3.y;
+                nz = vec3.z;
+                if (Math.abs(ny) < (double) 1.0E-5f) {
+                    float bounciness = parent.get(ParticleComponents.PARTICLE_MOTION_COLLISION).coefficientOfRestitution;
+                    yd = bounciness * -this.yd;
+                }
             }
+
         }
+
         if (nx != 0.0 || ny != 0.0 || nz != 0.0) {
             this.setBoundingBox(this.getBoundingBox().move(nx, ny, nz));
             this.setLocationFromBoundingbox();
         }
-        if (Math.abs(tmpY) >= (double)1.0E-5f && Math.abs(ny) < (double)1.0E-5f && this.yd < (double)1.0E-5f) {
+        if (Math.abs(tmpY) >= (double) 1.0E-5f && Math.abs(ny) < (double) 1.0E-5f && this.yd < (double) 1.0E-5f) {
             this.stoppedByCollision = true;
         }
         this.onGround = tmpY != ny && tmpY < 0.0;
+
         if (tmpX != nx) {
             this.xd = 0.0;
         }
@@ -213,12 +224,33 @@ public class ParticleElement extends ItemDisplayElement {
         this.z = (aABB.minZ + aABB.maxZ) / 2.0;
     }
 
-    private void onTick() throws MolangRuntimeException {
+    private void updateElementTick() throws MolangRuntimeException {
         this.setTransform(this.transform);
-        var item = this.getItem();
-        var hue = this.maxLifetime == null ? 1 : (float) (1.f - (this.age * (1.0 / 20.0) / parent.runtime().resolve(this.maxLifetime)));
-        item.set(DataComponents.DYED_COLOR, new DyedItemColor(ColorUtil.hslToRgb(hue,0.99f, 0.5f), false));
-        this.getDataTracker().set(DisplayTrackedData.Item.ITEM, item, true);
+
+        if (this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD) && !this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD).size.isEmpty()) {
+            var size = this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD).size;
+            var x = this.parent.runtime().resolve(size.get(0));
+            var y = this.parent.runtime().resolve(size.get(1));
+            var scale = new Vector3f(Float.isNaN(x) ? 0 : 3.f*x, Float.isNaN(y) ? 0 : 3.f*y, 1);
+            this.setScale(scale);
+            this.sendTrackerUpdates();
+            this.setScale(scale);
+        }
+
+        if (this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_TINTING)) {
+            var tinting = this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_TINTING);
+            if (tinting.isRGBA()) {
+                this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(tinting.rgba(this.parent.runtime()), false));
+            }
+            else {
+                var color = this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_TINTING).color.color(this.parent.runtime());
+                this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(color, false));
+            }
+            this.getDataTracker().set(DisplayTrackedData.Item.ITEM, this.item, false);
+        } else if (this.getItem() != this.item) {
+            this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(0xFF_FF_FF_FF, false));
+            this.setItem(this.item);
+        }
 
         this.startInterpolationIfDirty();
         this.sendPositionUpdates();

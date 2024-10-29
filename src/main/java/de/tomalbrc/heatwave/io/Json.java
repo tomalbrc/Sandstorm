@@ -1,59 +1,41 @@
 package de.tomalbrc.heatwave.io;
 
 import com.google.gson.*;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.JsonOps;
 import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.component.ParticleComponentMap;
-import de.tomalbrc.heatwave.curve.*;
+import de.tomalbrc.heatwave.component.particle.ParticleAppearanceTinting;
+import de.tomalbrc.heatwave.curve.Curve;
+import de.tomalbrc.heatwave.curve.LinearCurve;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.exception.MolangSyntaxException;
-import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.WeatheringCopper;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.PushReaction;
 import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 public class Json {
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
-            .registerTypeHierarchyAdapter(BlockState.class, new BlockStateDeserializer())
-            .registerTypeHierarchyAdapter(EquipmentSlot.class, new EquipmentSlotDeserializer())
             .registerTypeHierarchyAdapter(Vector3f.class, new Vector3fDeserializer())
             .registerTypeHierarchyAdapter(Vector2f.class, new Vector2fDeserializer())
             .registerTypeHierarchyAdapter(Quaternionf.class, new QuaternionfDeserializer())
             .registerTypeHierarchyAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
             .registerTypeHierarchyAdapter(ItemDisplayContext.class, new ItemDisplayContextDeserializer())
-            .registerTypeHierarchyAdapter(DataComponentMap.class, new DataComponentsDeserializer())
-            .registerTypeHierarchyAdapter(PushReaction.class, new PushReactionDeserializer())
-            .registerTypeHierarchyAdapter(WeatheringCopper.WeatherState.class, new WeatherStateDeserializer())
             .registerTypeHierarchyAdapter(Block.class, new RegistryDeserializer<>(BuiltInRegistries.BLOCK))
             .registerTypeHierarchyAdapter(Item.class, new RegistryDeserializer<>(BuiltInRegistries.ITEM))
             .registerTypeHierarchyAdapter(SoundEvent.class, new RegistryDeserializer<>(BuiltInRegistries.SOUND_EVENT))
             .registerTypeHierarchyAdapter(ParticleComponentMap.class, new ParticleComponentMap.Deserializer())
             .registerTypeHierarchyAdapter(MolangExpression.class, new MolangExpressionDeserializer())
+            .registerTypeAdapter(ParticleAppearanceTinting.class, new ParticleAppearanceTinting.ParticleAppearanceTintingDeserializer())
             .registerTypeAdapter(Curve.class, new CurveDeserializer())
             .create();
 
@@ -68,11 +50,11 @@ public class Json {
                         case "linear":
                             return context.deserialize(json, LinearCurve.class);
                         case "catmull_rom":
-                            return context.deserialize(json, CatmullRomCurve.class);
+                            return context.deserialize(json, LinearCurve.class);
                         case "bezier":
-                            return context.deserialize(json, BezierCurve.class);
+                            return context.deserialize(json, LinearCurve.class);
                         case "bezier_chain":
-                            return context.deserialize(json, BezierChainCurve.class);
+                            return context.deserialize(json, LinearCurve.class);
                     }
                 }
             }
@@ -88,37 +70,6 @@ public class Json {
             } catch (MolangSyntaxException e) {
                 throw new JsonParseException(e);
             }
-        }
-    }
-
-    public static class BlockStateDeserializer implements JsonDeserializer<BlockState> {
-        @Override
-        public BlockState deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            String name = json.getAsString().toLowerCase();
-
-            BlockStateParser.BlockResult parsed;
-            try {
-                parsed = BlockStateParser.parseForBlock(BuiltInRegistries.BLOCK.asLookup(), name, false);
-            } catch (CommandSyntaxException e) {
-                throw new JsonParseException("Invalid BlockState value: " + name);
-            }
-
-            return parsed.blockState();
-        }
-    }
-
-    public static class EquipmentSlotDeserializer implements JsonDeserializer<EquipmentSlot> {
-        @Override
-        public EquipmentSlot deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            String name = json.getAsString().toLowerCase();
-
-            for (EquipmentSlot slot : EquipmentSlot.values()) {
-                if (slot.name().equalsIgnoreCase(name)) {
-                    return slot;
-                }
-            }
-
-            throw new JsonParseException("Invalid EquipmentSlot value: " + name);
         }
     }
 
@@ -188,70 +139,10 @@ public class Json {
         }
     }
 
-    private static class PushReactionDeserializer implements JsonDeserializer<PushReaction> {
-        @Override
-        public PushReaction deserialize(JsonElement element, Type type, JsonDeserializationContext context) throws JsonParseException {
-            if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
-                throw new JsonParseException("Expected string, got " + element);
-            }
-
-            String value = element.getAsString().toUpperCase();
-            try {
-                return PushReaction.valueOf(value);
-            } catch (IllegalArgumentException e) {
-                throw new JsonParseException("Invalid PushReaction value: " + value, e);
-            }
-        }
-    }
-
-    private static class WeatherStateDeserializer implements JsonDeserializer<WeatheringCopper.WeatherState> {
-        @Override
-        public WeatheringCopper.WeatherState deserialize(JsonElement element, Type type, JsonDeserializationContext context) throws JsonParseException {
-            if (!element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
-                throw new JsonParseException("Expected string, got " + element);
-            }
-
-            String value = element.getAsString().toUpperCase();
-            try {
-                return WeatheringCopper.WeatherState.valueOf(value);
-            } catch (IllegalArgumentException e) {
-                throw new JsonParseException("Invalid WeatherState value: " + value, e);
-            }
-        }
-    }
-
     private record RegistryDeserializer<T>(Registry<T> registry) implements JsonDeserializer<T> {
         @Override
         public T deserialize(JsonElement element, Type type, JsonDeserializationContext context) throws JsonParseException {
             return this.registry.get(ResourceLocation.parse(element.getAsString()));
-        }
-    }
-
-    public static class DataComponentsDeserializer implements JsonDeserializer<DataComponentMap> {
-        @Override
-        public DataComponentMap deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            RegistryOps.RegistryInfoLookup registryInfoLookup = createContext(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
-            DataResult<Pair<DataComponentMap, JsonElement>> result = DataComponentMap.CODEC.decode(RegistryOps.create(JsonOps.INSTANCE, registryInfoLookup), jsonElement);
-
-            if (result.resultOrPartial().isEmpty()) {
-                return null;
-            }
-
-            return result.resultOrPartial().get().getFirst();
-        }
-
-        private static RegistryOps.RegistryInfoLookup createContext(RegistryAccess registryAccess) {
-            final Map<ResourceKey<? extends Registry<?>>, RegistryOps.RegistryInfo<?>> map = new HashMap<>();
-            registryAccess.registries().forEach((registryEntry) -> map.put(registryEntry.key(), createInfoForContextRegistry(registryEntry.value())));
-            return new RegistryOps.RegistryInfoLookup() {
-                public <T> Optional<RegistryOps.RegistryInfo<T>> lookup(ResourceKey<? extends Registry<? extends T>> resourceKey) {
-                    return Optional.ofNullable((RegistryOps.RegistryInfo<T>)map.get(resourceKey));
-                }
-            };
-        }
-
-        private static <T> RegistryOps.RegistryInfo<T> createInfoForContextRegistry(Registry<T> registry) {
-            return new RegistryOps.RegistryInfo<>(registry.asLookup(), registry.asTagAddingLookup(), registry.registryLifecycle());
         }
     }
 }

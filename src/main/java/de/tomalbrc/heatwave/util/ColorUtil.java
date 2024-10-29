@@ -36,4 +36,19 @@ public class ColorUtil {
             return p + (q - p) * (2f / 3f - t) * 6f;
         return p;
     }
+
+    public static int parseHexColor(String hexColor) {
+        // Remove the '#' if it exists
+        hexColor = hexColor.replace("#", "");
+
+        // Parse hex to an integer
+        int colorInt = (int) Long.parseLong(hexColor, 16);
+
+        // If the hex is in RGB format (6 characters), add full opacity (alpha = 255)
+        if (hexColor.length() == 6) {
+            colorInt |= 0xFF000000; // Add alpha channel (255) at the highest byte
+        }
+
+        return colorInt;
+    }
 }

@@ -32,6 +32,7 @@ public class ParticleModels {
         for (Map.Entry<String, byte[]> entry : DATA.entrySet()) {
             builder.addData("assets/heatwave/" + entry.getKey(), entry.getValue());
         }
+        DATA.clear();
     }
 
     public static void addFrom(ParticleEffectFile effectFile) throws IOException {
@@ -45,7 +46,7 @@ public class ParticleModels {
             float ys = texel ? 1.f : billboard.uv.textureHeight;
 
             BufferedImage image = ImageIO.read(resource);
-            BufferedImage newImage = image.getSubimage(
+            BufferedImage newImage = !billboard.uv.uv.get(0).isConstant() ? image : image.getSubimage(
                     (int) (billboard.uv.uv.get(0).getConstant() * xs),
                     (int) (billboard.uv.uv.get(1).getConstant() * ys),
                     (int) (billboard.uv.uvSize.get(0).getConstant() * xs),

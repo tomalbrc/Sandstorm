@@ -15,14 +15,20 @@ public class Particles {
     public static final List<ParticleEffectFile> ALL = new ObjectArrayList<>();
 
     public static final ParticleEffectFile RAINBOW;
-    public static final ParticleEffectFile SMOKE;
     public static final ParticleEffectFile BALL;
+    public static final ParticleEffectFile SNOW;
+    public static final ParticleEffectFile LOADING;
+    public static final ParticleEffectFile TRAIL;
+    public static final ParticleEffectFile SMOKE;
 
     static {
         try {
             RAINBOW = loadEffect("/particle/rainbow.particle.json");
-            SMOKE = loadEffect("/particle/smoke.json");
             BALL = loadEffect("/particle/ball.json");
+            SNOW = loadEffect("/particle/snow.json");
+            LOADING = loadEffect("/particle/loading.json");
+            TRAIL = loadEffect("/particle/trail.json");
+            SMOKE = loadEffect("/particle/smoke.json");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -8,6 +8,7 @@ import de.tomalbrc.heatwave.Particles;
 import de.tomalbrc.heatwave.io.ParticleEffectFile;
 import de.tomalbrc.heatwave.polymer.ParticleEffectHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
+import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -38,7 +39,12 @@ public class HeatwaveCommand {
             }
 
             if (file != null) {
-                ParticleEffectHolder holder = new ParticleEffectHolder(file);
+                ParticleEffectHolder holder;
+                try {
+                    holder = new ParticleEffectHolder(file);
+                } catch (MolangRuntimeException e) {
+                    throw new RuntimeException(e);
+                }
                 ChunkAttachment.ofTicking(holder, player.serverLevel(), player.position());
             }
         }

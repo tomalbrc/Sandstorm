@@ -13,7 +13,7 @@ import java.util.List;
 // Emitter Shape Components
 public class EmitterShapeDisc implements ParticleComponent<EmitterShapeDisc> {
     @SerializedName("plane_normal")
-    public List<MolangExpression> planeNormal = ImmutableList.of(); // default: [0, 1, 0]
+    public List<MolangExpression> planeNormal = ImmutableList.of(MolangExpression.of(0), MolangExpression.of(1), MolangExpression.of(0)); // default: [0, 1, 0]
 
     @SerializedName("offset")
     public List<MolangExpression> offset = ImmutableList.of(MolangExpression.of(0), MolangExpression.of(0), MolangExpression.of(0)); // default: [0, 0, 0]
