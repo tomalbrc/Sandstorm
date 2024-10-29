@@ -4,6 +4,7 @@ import com.google.gson.*;
 import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.component.ParticleComponentMap;
 import de.tomalbrc.heatwave.component.particle.ParticleAppearanceTinting;
+import de.tomalbrc.heatwave.component.particle.ParticleInitialSpeed;
 import de.tomalbrc.heatwave.curve.Curve;
 import de.tomalbrc.heatwave.curve.LinearCurve;
 import gg.moonflower.molangcompiler.api.MolangExpression;
@@ -35,7 +36,7 @@ public class Json {
             .registerTypeHierarchyAdapter(SoundEvent.class, new RegistryDeserializer<>(BuiltInRegistries.SOUND_EVENT))
             .registerTypeHierarchyAdapter(ParticleComponentMap.class, new ParticleComponentMap.Deserializer())
             .registerTypeHierarchyAdapter(MolangExpression.class, new MolangExpressionDeserializer())
-            .registerTypeAdapter(ParticleAppearanceTinting.class, new ParticleAppearanceTinting.ParticleAppearanceTintingDeserializer())
+            .registerTypeAdapter(ParticleAppearanceTinting.class, new ParticleAppearanceTinting.Deserializer())
             .registerTypeAdapter(Curve.class, new CurveDeserializer())
             .create();
 

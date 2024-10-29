@@ -9,5 +9,5 @@ public class EmitterLifetimeExpression implements ParticleComponent<EmitterLifet
     public MolangExpression activationExpression = MolangExpression.of(1); // default: 1
 
     @SerializedName("expiration_expression")
-    public MolangExpression expirationExpression = MolangExpression.of(0); // default: 0
+    public MolangExpression expirationExpression = MolangExpression.ZERO; // default: 0
 }

@@ -33,6 +33,8 @@
         "uv": {
           "texture_width": 128,
           "texture_height": 128,
+          "uv": [40, 80],
+          "uv_size": [8, 8],
           "flipbook": {
             "base_UV": [ 56, 0 ],
             "size_UV": [ 8, 8 ],

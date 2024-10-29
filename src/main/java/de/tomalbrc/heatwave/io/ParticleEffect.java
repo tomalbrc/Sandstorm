@@ -1,11 +1,9 @@
 package de.tomalbrc.heatwave.io;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponentMap;
 import de.tomalbrc.heatwave.curve.Curve;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Map;

@@ -10,6 +10,7 @@ import eu.pb4.polymer.virtualentity.api.elements.VirtualElement;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,8 +27,12 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
     private final MolangRuntime runtime;
 
     private int age;
+    private boolean canEmit = true;
 
-    public ParticleEffectHolder(ParticleEffectFile effectFile) throws MolangRuntimeException {
+    private final ServerLevel serverLevel;
+
+    public ParticleEffectHolder(ParticleEffectFile effectFile, ServerLevel level) throws MolangRuntimeException {
+        this.serverLevel = level;
         this.effectFile = effectFile;
         this.initComponents(effectFile.effect.components);
         this.runtime = MolangRuntime.runtime().create();
@@ -61,7 +66,7 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
         }
     }
 
-    public Vec3 particleOffset() throws MolangRuntimeException {
+    protected Vec3 particleOffset() throws MolangRuntimeException {
         var point = this.get(ParticleComponents.EMITTER_SHAPE_POINT);
         if (point != null) {
             var x = this.runtime.resolve(point.offset.get(0));
@@ -165,9 +170,14 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
         var once = this.get(ParticleComponents.EMITTER_LIFETIME_ONCE);
         if (looping != null) {
             var max = lifetime = runtime.resolve(looping.activeTime);
-            if (this.age*(1.f/20.f) >= max) {
+            var sleeptime = runtime.resolve(looping.sleepTime);
+            if (this.age * (1.f/20.f) >= max) {
                 // todo: check loop delay
-                this.age = 0;
+                this.canEmit = false;
+                if ((this.age+sleeptime) * (1.f/20.f) >= max) {
+                    this.age = 0;
+                    this.canEmit = true;
+                }
             }
         }
         if (once != null) {
@@ -183,7 +193,7 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
     }
 
     private boolean canEmit() {
-        return true;
+        return this.canEmit;
     }
 
     private void handlePerUpdateExpression() {
@@ -232,7 +242,7 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
             if (this.canEmit()) {
                 int particlesToSpawn = (int)spawnRate;
                 for (int i = 0; i < particlesToSpawn && this.particleElements.size() <= maxParticles; i++) {
-                    this.addElement(new ParticleElement(this));
+                    this.emit();
                 }
             }
         }
@@ -254,7 +264,20 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
     }
 
     private void emit() throws MolangRuntimeException {
-        this.addElement(new ParticleElement(this));
+        var particle = new ParticleElement(this);
+        var initSpeed = this.get(ParticleComponents.PARTICLE_INITIAL_SPEED);
+        if (initSpeed != null) {
+            var n = new Vec3(particle.x(), particle.y(), particle.z()).subtract(this.getPos()).normalize();
+            var sx = this.runtime.resolve(initSpeed.value().get(0));
+            var sy = initSpeed.value().size() > 1 ? this.runtime.resolve(initSpeed.value().get(1)) : sx;
+            var sz = initSpeed.value().size() > 1 ? this.runtime.resolve(initSpeed.value().get(2)) : sx;
+            particle.setDelta(
+                    (float) (n.x * sx),
+                    (float) (n.y * sy),
+                    (float) (n.z * sz)
+            );
+        }
+        this.addElement(particle);
     }
 
     @Override
@@ -274,5 +297,9 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
     @Override
     public ParticleComponentMap components() {
         return this.componentMap;
+    }
+
+    public ServerLevel serverLevel() {
+        return this.serverLevel;
     }
 }

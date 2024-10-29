@@ -1,12 +1,10 @@
 package de.tomalbrc.heatwave.component.particle.config;
 
-import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.util.ColorUtil;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
-import it.unimi.dsi.fastutil.floats.Float2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.util.Comparator;

@@ -15,7 +15,9 @@ class ParticleSuggestionProvider implements SuggestionProvider<CommandSourceStac
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<CommandSourceStack> context,
                                                          SuggestionsBuilder builder) {
         for (ParticleEffectFile effectFile : Particles.ALL) {
-            builder.suggest(effectFile.effect.description.identifier.toString());
+            if (effectFile.effect != null) {
+                builder.suggest(effectFile.effect.description.identifier.toString());
+            }
         }
 
         return builder.buildFuture();

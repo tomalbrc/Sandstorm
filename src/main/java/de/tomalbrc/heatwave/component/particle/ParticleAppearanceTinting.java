@@ -35,7 +35,7 @@ public class ParticleAppearanceTinting implements ParticleComponent<ParticleAppe
         return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
-    public static class ParticleAppearanceTintingDeserializer implements JsonDeserializer<ParticleAppearanceTinting> {
+    public static class Deserializer implements JsonDeserializer<ParticleAppearanceTinting> {
         @Override
         public ParticleAppearanceTinting deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             ParticleAppearanceTinting result = new ParticleAppearanceTinting();

@@ -1,9 +1,7 @@
 package de.tomalbrc.heatwave.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.Particles;
 import de.tomalbrc.heatwave.io.ParticleEffectFile;
 import de.tomalbrc.heatwave.polymer.ParticleEffectHolder;
@@ -38,10 +36,10 @@ public class HeatwaveCommand {
                 }
             }
 
-            if (file != null) {
+            if (file != null && context.getSource() != null) {
                 ParticleEffectHolder holder;
                 try {
-                    holder = new ParticleEffectHolder(file);
+                    holder = new ParticleEffectHolder(file, context.getSource().getLevel());
                 } catch (MolangRuntimeException e) {
                     throw new RuntimeException(e);
                 }

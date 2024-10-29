@@ -1,11 +1,9 @@
 package de.tomalbrc.heatwave.polymer;
 
-import de.tomalbrc.heatwave.Heatwave;
-import de.tomalbrc.heatwave.util.ParticleModels;
-import de.tomalbrc.heatwave.util.ColorUtil;
 import de.tomalbrc.heatwave.component.ParticleComponent;
 import de.tomalbrc.heatwave.component.ParticleComponentType;
 import de.tomalbrc.heatwave.component.ParticleComponents;
+import de.tomalbrc.heatwave.util.ParticleModels;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import gg.moonflower.molangcompiler.api.MolangExpression;
@@ -16,12 +14,10 @@ import net.minecraft.util.Brightness;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.util.List;
@@ -30,7 +26,6 @@ public class ParticleElement extends ItemDisplayElement {
     private static final AABB INITIAL_AABB = new AABB(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     private static final double MAX_COLLISION_VELOCITY = Mth.square(100.0);
 
-    private final Matrix4f transform = new Matrix4f();
     private MolangExpression maxLifetime;
     private MolangExpression lifetimeExpression;
     private AABB bb = INITIAL_AABB;
@@ -40,7 +35,6 @@ public class ParticleElement extends ItemDisplayElement {
     protected boolean removed;
     protected int age;
     protected float roll;
-    protected boolean speedUpWhenYMotionIsBlocked = false;
 
     protected double xo;
     protected double yo;
@@ -48,11 +42,13 @@ public class ParticleElement extends ItemDisplayElement {
     protected double x;
     protected double y;
     protected double z;
-    protected double xd;
-    protected double yd;
-    protected double zd;
+    protected float xd;
+    protected float yd;
+    protected float zd;
 
     private final boolean physics;
+    private final boolean dynamicMotion;
+    private final boolean parametricMotion;
 
     protected float bbRadius = 0.6f;
 
@@ -67,6 +63,8 @@ public class ParticleElement extends ItemDisplayElement {
     public ParticleElement(ParticleEffectHolder particleEffectHolder) throws MolangRuntimeException {
         this.parent = particleEffectHolder;
         this.physics = parent.has(ParticleComponents.PARTICLE_MOTION_COLLISION);
+        this.dynamicMotion = parent.has(ParticleComponents.PARTICLE_MOTION_DYNAMIC);
+        this.parametricMotion = parent.has(ParticleComponents.PARTICLE_MOTION_PARAMETRIC);
 
         if (particleEffectHolder.has(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION)) {
             this.maxLifetime = this.get(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION).maxLifetime;
@@ -93,6 +91,26 @@ public class ParticleElement extends ItemDisplayElement {
             this.setBrightness(Brightness.FULL_BRIGHT);
     }
 
+    public double x() {
+        return x;
+    }
+    public double y() {
+        return y;
+    }
+    public double z() {
+        return z;
+    }
+
+    public void setDelta(float x, float y, float z) {
+        this.xd = x;
+        this.yd = y;
+        this.zd = z;
+    }
+
+    public void setRoll(float roll) {
+        this.roll = roll;
+    }
+
     public void updateRuntimePerParticle(MolangRuntime runtime) throws MolangRuntimeException {
         var rt = runtime.edit();
         rt.setVariable("particle_random_1", this.random_1);
@@ -102,17 +120,6 @@ public class ParticleElement extends ItemDisplayElement {
 
         rt.setVariable("particle_age", this.age*(1.f/20.f));
         rt.setVariable("particle_lifetime", runtime.resolve(this.maxLifetime));
-    }
-
-    public void setDelta(double xd, double yd, double zd) {
-        this.xd = xd + (Math.random() * 2.0 - 1.0) * (double)0.4f;
-        this.yd = yd + (Math.random() * 2.0 - 1.0) * (double)0.4f;
-        this.zd = zd + (Math.random() * 2.0 - 1.0) * (double)0.4f;
-        double a = (Math.random() + Math.random() + 1.0) * (double)0.15f;
-        double b = Math.sqrt(this.xd * this.xd + this.yd * this.yd + this.zd * this.zd);
-        this.xd = this.xd / b * a * (double)0.4f;
-        this.yd = this.yd / b * a * (double)0.4f + (double)0.1f;
-        this.zd = this.zd / b * a * (double)0.4f;
     }
 
     @Override
@@ -140,19 +147,37 @@ public class ParticleElement extends ItemDisplayElement {
                 return;
             }
 
-            if (this.parent.has(ParticleComponents.PARTICLE_MOTION_DYNAMIC)) {
-                this.xd += this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearAcceleration.get(0));
-                this.yd += this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearAcceleration.get(1));
-                this.zd += this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearAcceleration.get(2));
+            if (this.parametricMotion) {
+                var para = this.parent.get(ParticleComponents.PARTICLE_MOTION_PARAMETRIC);
+                this.x = this.parent.runtime().resolve(para.relativePosition.get(0));
+                this.y = this.parent.runtime().resolve(para.relativePosition.get(1));
+                this.z = this.parent.runtime().resolve(para.relativePosition.get(2));
+
+                if (!para.direction.isEmpty()) {
+                    this.xd = this.parent.runtime().resolve(para.direction.get(0));
+                    this.yd = this.parent.runtime().resolve(para.direction.get(1));
+                    this.zd = this.parent.runtime().resolve(para.direction.get(2));
+                }
+
+                this.roll = this.parent.runtime().resolve(para.rotation);
             }
 
-            this.move(this.xd, this.yd, this.zd);
+            if (this.dynamicMotion) {
+                var accel = this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearAcceleration;
+                var xa = this.parent.runtime().resolve(accel.get(0));
+                var ya = this.parent.runtime().resolve(accel.get(1));
+                var za = this.parent.runtime().resolve(accel.get(2));
 
-            if (this.parent.has(ParticleComponents.PARTICLE_MOTION_DYNAMIC)) {
-                var val = this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearDragCoefficient);
-                this.xd *= val;
-                this.yd *= val;
-                this.zd *= val;
+                float dragCoefficient = this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearDragCoefficient);
+                xa -= dragCoefficient * this.xd;
+                ya -= dragCoefficient * this.yd;
+                za -= dragCoefficient * this.zd;
+
+                this.xd += xa * (1.f/20.f);
+                this.yd += ya * (1.f/20.f);
+                this.zd += za * (1.f/20.f);
+
+                this.move(this.xd * (1.f/20.f), this.yd * (1.f/20.f), this.zd * (1.f/20.f));
             }
 
             if (this.onGround) {
@@ -163,7 +188,7 @@ public class ParticleElement extends ItemDisplayElement {
             this.updateElementTick();
         }
         catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
@@ -192,9 +217,15 @@ public class ParticleElement extends ItemDisplayElement {
                 nx = vec3.x;
                 ny = vec3.y;
                 nz = vec3.z;
-                if (Math.abs(ny) < (double) 1.0E-5f) {
-                    float bounciness = parent.get(ParticleComponents.PARTICLE_MOTION_COLLISION).coefficientOfRestitution;
-                    yd = bounciness * -this.yd;
+                if (Math.abs(ny) < (double) 1.0E-5f) { // coll check
+                    var coll = this.get(ParticleComponents.PARTICLE_MOTION_COLLISION);
+                    if (coll.expireOnContact) {
+                        this.remove();
+                    }
+                    else {
+                        float bounciness = this.get(ParticleComponents.PARTICLE_MOTION_COLLISION).coefficientOfRestitution;
+                        this.yd = bounciness * -this.yd;
+                    }
                 }
             }
 
@@ -207,13 +238,14 @@ public class ParticleElement extends ItemDisplayElement {
         if (Math.abs(tmpY) >= (double) 1.0E-5f && Math.abs(ny) < (double) 1.0E-5f && this.yd < (double) 1.0E-5f) {
             this.stoppedByCollision = true;
         }
+
         this.onGround = tmpY != ny && tmpY < 0.0;
 
         if (tmpX != nx) {
-            this.xd = 0.0;
+            this.xd = 0.f;
         }
         if (tmpZ != nz) {
-            this.zd = 0.0;
+            this.zd = 0.f;
         }
     }
 
@@ -225,16 +257,16 @@ public class ParticleElement extends ItemDisplayElement {
     }
 
     private void updateElementTick() throws MolangRuntimeException {
-        this.setTransform(this.transform);
-
         if (this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD) && !this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD).size.isEmpty()) {
             var size = this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD).size;
             var x = this.parent.runtime().resolve(size.get(0));
             var y = this.parent.runtime().resolve(size.get(1));
             var scale = new Vector3f(Float.isNaN(x) ? 0 : 3.f*x, Float.isNaN(y) ? 0 : 3.f*y, 1);
-            this.setScale(scale);
-            this.sendTrackerUpdates();
-            this.setScale(scale);
+            if (!this.getScale().equals(scale, 0.001f)) {
+                this.setScale(scale);
+                this.sendTrackerUpdates();
+                this.setScale(scale);
+            }
         }
 
         if (this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_TINTING)) {
@@ -259,14 +291,6 @@ public class ParticleElement extends ItemDisplayElement {
 
     public void remove() {
         this.removed = true;
-    }
-
-    public Matrix4f getTransform() {
-        return this.transform;
-    }
-
-    public void setTransform(Matrix4f transform) {
-        this.transform.set(transform);
     }
 
     public boolean isRemoved() {

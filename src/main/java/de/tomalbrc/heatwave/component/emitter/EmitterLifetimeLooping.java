@@ -9,5 +9,5 @@ public class EmitterLifetimeLooping implements ParticleComponent<EmitterLifetime
     public MolangExpression activeTime = MolangExpression.of(10); // default: 10
 
     @SerializedName("sleep_time")
-    public MolangExpression sleepTime = MolangExpression.of(0); // default: 0
+    public MolangExpression sleepTime = MolangExpression.ZERO; // default: 0
 }

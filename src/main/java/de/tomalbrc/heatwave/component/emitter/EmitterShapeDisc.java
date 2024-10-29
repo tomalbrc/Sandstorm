@@ -2,7 +2,6 @@ package de.tomalbrc.heatwave.component.emitter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
@@ -13,10 +12,10 @@ import java.util.List;
 // Emitter Shape Components
 public class EmitterShapeDisc implements ParticleComponent<EmitterShapeDisc> {
     @SerializedName("plane_normal")
-    public List<MolangExpression> planeNormal = ImmutableList.of(MolangExpression.of(0), MolangExpression.of(1), MolangExpression.of(0)); // default: [0, 1, 0]
+    public List<MolangExpression> planeNormal = ImmutableList.of(MolangExpression.ZERO, MolangExpression.of(1), MolangExpression.ZERO); // default: [0, 1, 0]
 
     @SerializedName("offset")
-    public List<MolangExpression> offset = ImmutableList.of(MolangExpression.of(0), MolangExpression.of(0), MolangExpression.of(0)); // default: [0, 0, 0]
+    public List<MolangExpression> offset = ImmutableList.of(MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO); // default: [0, 0, 0]
 
     @SerializedName("radius")
     public MolangExpression radius = MolangExpression.of(1); // default: 1

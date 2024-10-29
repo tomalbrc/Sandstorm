@@ -4,7 +4,6 @@ import de.tomalbrc.heatwave.io.Json;
 import de.tomalbrc.heatwave.io.ParticleEffectFile;
 import de.tomalbrc.heatwave.util.ParticleModels;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.lwjgl.openal.AL;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +19,7 @@ public class Particles {
     public static final ParticleEffectFile LOADING;
     public static final ParticleEffectFile TRAIL;
     public static final ParticleEffectFile SMOKE;
+    public static final ParticleEffectFile MAGIC;
 
     static {
         try {
@@ -29,6 +29,7 @@ public class Particles {
             LOADING = loadEffect("/particle/loading.json");
             TRAIL = loadEffect("/particle/trail.json");
             SMOKE = loadEffect("/particle/smoke.json");
+            MAGIC = loadEffect("/particle/magic.json");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

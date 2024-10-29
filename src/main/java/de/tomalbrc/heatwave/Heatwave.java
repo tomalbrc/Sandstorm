@@ -3,7 +3,6 @@ package de.tomalbrc.heatwave;
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.heatwave.command.HeatwaveCommand;
 import de.tomalbrc.heatwave.component.ParticleComponents;
-import de.tomalbrc.heatwave.curve.LinearCurve;
 import de.tomalbrc.heatwave.util.ParticleModels;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import gg.moonflower.molangcompiler.api.MolangCompiler;

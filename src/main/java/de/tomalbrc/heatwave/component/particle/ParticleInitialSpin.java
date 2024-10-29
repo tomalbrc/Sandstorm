@@ -6,7 +6,7 @@ import gg.moonflower.molangcompiler.api.MolangExpression;
 
 public class ParticleInitialSpin implements ParticleComponent<ParticleInitialSpin> {
     @SerializedName("rotation")
-    public MolangExpression rotation = MolangExpression.of(0);
+    public MolangExpression rotation = MolangExpression.ZERO;
     @SerializedName("rotation_rate")
-    public MolangExpression rotationRate = MolangExpression.of(0);
+    public MolangExpression rotationRate = MolangExpression.ZERO;
 }

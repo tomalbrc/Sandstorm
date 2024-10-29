@@ -1,12 +1,10 @@
 package de.tomalbrc.heatwave.curve;
 
-import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import gg.moonflower.molangcompiler.api.MolangEnvironment;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 
-import java.util.List;
 import java.util.Map;
 
 public class BezierChainCurve implements Curve {
