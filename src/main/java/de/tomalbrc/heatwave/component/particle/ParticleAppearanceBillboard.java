@@ -8,7 +8,6 @@ import gg.moonflower.molangcompiler.api.MolangExpression;
 
 import java.util.List;
 
-
 // Particle Appearance Components
 public class ParticleAppearanceBillboard implements ParticleComponent<ParticleAppearanceBillboard> {
     @SerializedName("size")

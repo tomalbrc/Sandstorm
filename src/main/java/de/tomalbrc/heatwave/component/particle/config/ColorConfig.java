@@ -22,15 +22,7 @@ public class ColorConfig {
         return getInterpolatedColor(gradient, interpolantValue);
     }
 
-    static class GradientStop {
-        public float position;
-        public int color;
-
-        public GradientStop(float position, int color) {
-            this.position = position;
-            this.color = color;
-        }
-    }
+    record GradientStop(float position, int color) {}
 
     public int getInterpolatedColor(Map<String, String> gradient, float variableRainbow) {
         List<GradientStop> gradientStops = new ObjectArrayList<>();
@@ -43,16 +35,18 @@ public class ColorConfig {
 
         gradientStops.sort(Comparator.comparing(stop -> stop.position));
 
-        GradientStop lowerStop = gradientStops.get(0);
-        GradientStop upperStop = gradientStops.get(1);
+        GradientStop lowerStop = null;
+        GradientStop upperStop = null;
 
         for (int i = 0; i < gradientStops.size() - 1; i++) {
-            if (variableRainbow >= gradientStops.get(i).position && variableRainbow <= gradientStops.get(i + 1).position) {
-                lowerStop = gradientStops.get(i);
-                upperStop = gradientStops.get(i + 1);
+            lowerStop = gradientStops.get(i);
+            upperStop = gradientStops.get(i + 1);
+            if (lowerStop.position < 0 || variableRainbow >= lowerStop.position && variableRainbow <= upperStop.position) {
                 break;
             }
         }
+
+        assert lowerStop != null && upperStop != null;
 
         float t = (variableRainbow - lowerStop.position) / (upperStop.position - lowerStop.position);
 

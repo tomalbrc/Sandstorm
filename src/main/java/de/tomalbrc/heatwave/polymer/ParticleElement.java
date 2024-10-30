@@ -4,11 +4,14 @@ import de.tomalbrc.heatwave.component.ParticleComponent;
 import de.tomalbrc.heatwave.component.ParticleComponentType;
 import de.tomalbrc.heatwave.component.ParticleComponents;
 import de.tomalbrc.heatwave.util.ParticleModels;
+import eu.pb4.polymer.virtualentity.api.elements.GenericEntityElement;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
+import eu.pb4.polymer.virtualentity.api.elements.VirtualElement;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
+import io.netty.util.concurrent.CompleteFuture;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.Brightness;
 import net.minecraft.util.Mth;
@@ -18,9 +21,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class ParticleElement extends ItemDisplayElement {
     private static final AABB INITIAL_AABB = new AABB(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
@@ -35,6 +40,7 @@ public class ParticleElement extends ItemDisplayElement {
     protected boolean removed;
     protected int age;
     protected float roll;
+    protected float rolld;
 
     protected double xo;
     protected double yo;
@@ -50,10 +56,10 @@ public class ParticleElement extends ItemDisplayElement {
     private final boolean dynamicMotion;
     private final boolean parametricMotion;
 
-    protected float bbRadius = 0.6f;
+    protected float bbRadius = 0.2f;
 
-    protected final float random_1 = (float) Math.random();
     protected final float random_2 = (float) Math.random();
+    protected final float random_1 = (float) Math.random();
     protected final float random_3 = (float) Math.random();
     protected final float random_4 = (float) Math.random();
 
@@ -76,7 +82,6 @@ public class ParticleElement extends ItemDisplayElement {
         }
 
         this.updateRuntimePerParticle(this.parent.runtime());
-        this.setPos(particleEffectHolder.particleOffset().x, particleEffectHolder.particleOffset().y, particleEffectHolder.particleOffset().z);
 
         this.item = ParticleModels.modelData(particleEffectHolder.getEffectFile()).asStack();
 
@@ -84,21 +89,13 @@ public class ParticleElement extends ItemDisplayElement {
             this.setBillboardMode(Display.BillboardConstraints.CENTER);
 
         this.setSendPositionUpdates(true);
+        this.setInvisible(true);
+        this.setDisplaySize(0.2f, 0.2f);
         this.setInterpolationDuration(2);
         this.setTeleportDuration(1);
 
         if (!this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_LIGHTING))
             this.setBrightness(Brightness.FULL_BRIGHT);
-    }
-
-    public double x() {
-        return x;
-    }
-    public double y() {
-        return y;
-    }
-    public double z() {
-        return z;
     }
 
     public void setDelta(float x, float y, float z) {
@@ -109,6 +106,10 @@ public class ParticleElement extends ItemDisplayElement {
 
     public void setRoll(float roll) {
         this.roll = roll;
+    }
+
+    public void setRollAccel(float accel) {
+        this.rolld = accel;
     }
 
     public void updateRuntimePerParticle(MolangRuntime runtime) throws MolangRuntimeException {
@@ -192,6 +193,11 @@ public class ParticleElement extends ItemDisplayElement {
         }
     }
 
+    public void asyncTick() {
+        this.sendPositionUpdates();
+        this.sendTrackerUpdates();
+    }
+
     public void setPos(double d, double d2, double d3) {
         this.x = d;
         this.y = d2;
@@ -257,6 +263,8 @@ public class ParticleElement extends ItemDisplayElement {
     }
 
     private void updateElementTick() throws MolangRuntimeException {
+        this.setLeftRotation(new Quaternionf().rotateZ(this.roll * Mth.DEG_TO_RAD));
+
         if (this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD) && !this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD).size.isEmpty()) {
             var size = this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD).size;
             var x = this.parent.runtime().resolve(size.get(0));
@@ -280,13 +288,11 @@ public class ParticleElement extends ItemDisplayElement {
             }
             this.getDataTracker().set(DisplayTrackedData.Item.ITEM, this.item, false);
         } else if (this.getItem() != this.item) {
-            this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(0xFF_FF_FF_FF, false));
+            this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(0xFF_FF_FF, false));
             this.setItem(this.item);
         }
 
         this.startInterpolationIfDirty();
-        this.sendPositionUpdates();
-        this.sendTrackerUpdates();
     }
 
     public void remove() {

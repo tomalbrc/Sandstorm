@@ -30,6 +30,9 @@ public class Particles {
             TRAIL = loadEffect("/particle/trail.json");
             SMOKE = loadEffect("/particle/smoke.json");
             MAGIC = loadEffect("/particle/magic.json");
+
+            //loadEffect("/particle/rift.json");
+            loadEffect("/particle/confetti.particle.json");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -3,17 +3,23 @@ package de.tomalbrc.heatwave;
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.heatwave.command.HeatwaveCommand;
 import de.tomalbrc.heatwave.component.ParticleComponents;
+import de.tomalbrc.heatwave.polymer.ParticleEffectHolder;
 import de.tomalbrc.heatwave.util.ParticleModels;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import gg.moonflower.molangcompiler.api.MolangCompiler;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import org.slf4j.Logger;
+
+import java.util.List;
 
 public class Heatwave implements ModInitializer {
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final String MOD_ID = "heatwave";
     public static MolangCompiler MOLANG = MolangCompiler.create(MolangCompiler.DEFAULT_FLAGS, Heatwave.class.getClassLoader());
+
+    public static List<ParticleEffectHolder> HOLDER = new ObjectArrayList<>();
 
     @Override
     public void onInitialize() {

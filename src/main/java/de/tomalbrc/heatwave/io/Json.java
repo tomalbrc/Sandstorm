@@ -3,6 +3,9 @@ package de.tomalbrc.heatwave.io;
 import com.google.gson.*;
 import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.component.ParticleComponentMap;
+import de.tomalbrc.heatwave.component.emitter.EmitterShapeBox;
+import de.tomalbrc.heatwave.component.emitter.EmitterShapeDisc;
+import de.tomalbrc.heatwave.component.emitter.EmitterShapeSphere;
 import de.tomalbrc.heatwave.component.particle.ParticleAppearanceTinting;
 import de.tomalbrc.heatwave.component.particle.ParticleInitialSpeed;
 import de.tomalbrc.heatwave.curve.Curve;
@@ -37,6 +40,9 @@ public class Json {
             .registerTypeHierarchyAdapter(ParticleComponentMap.class, new ParticleComponentMap.Deserializer())
             .registerTypeHierarchyAdapter(MolangExpression.class, new MolangExpressionDeserializer())
             .registerTypeAdapter(ParticleAppearanceTinting.class, new ParticleAppearanceTinting.Deserializer())
+            .registerTypeAdapter(EmitterShapeSphere.class, new EmitterShapeSphere.Deserializer())
+            .registerTypeAdapter(EmitterShapeBox.class, new EmitterShapeBox.Deserializer())
+            .registerTypeAdapter(EmitterShapeDisc.class, new EmitterShapeDisc.Deserializer())
             .registerTypeAdapter(Curve.class, new CurveDeserializer())
             .create();
 

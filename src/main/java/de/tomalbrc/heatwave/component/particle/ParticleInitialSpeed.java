@@ -25,6 +25,14 @@ public class ParticleInitialSpeed implements ParticleComponent<List<MolangExpres
         this.value = ImmutableList.of(MolangExpression.of(v));
     }
 
+    public ParticleInitialSpeed(String v) {
+        try {
+            this.value = ImmutableList.of(Heatwave.MOLANG.compile(v));
+        } catch (MolangSyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public List<MolangExpression> value() {
         return value;

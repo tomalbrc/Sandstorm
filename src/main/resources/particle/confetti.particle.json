@@ -1,0 +1,42 @@
+{
+    "format_version": "1.10.0",
+    "particle_effect": {
+        "description": {
+            "identifier": "pork:confetti",
+            "basic_render_parameters": { "material": "particles_alpha", "texture": "textures/particle/confetti" }
+        },
+        "components": {
+            "minecraft:emitter_rate_instant": { "num_particles": 100 },
+            "minecraft:emitter_lifetime_once": { "active_time": 1 },
+            "minecraft:emitter_shape_point": {
+                "direction": [ "math.random(-0.5,0.5)", "math.random(-0.5,0.5)", "math.random(-0.5,-1)" ]
+            },
+            "minecraft:particle_lifetime_expression": { "max_lifetime": "math.random(10,12)" },
+            "minecraft:particle_initial_spin": {
+                "rotation": "math.random(0,360)",
+                "rotation_rate": "math.random(-360,360)"
+            },
+            "minecraft:particle_initial_speed": "math.random(5,10)",
+            "minecraft:particle_motion_dynamic": {
+                "linear_acceleration": [ 0, "math.random(-2,-7)", 0 ],
+                "linear_drag_coefficient": 0.5,
+                "rotation_drag_coefficient": 1
+            },
+            "minecraft:particle_appearance_billboard": {
+                "size": [ 0.2, 0.2 ],
+                "facing_camera_mode": "rotate_xyz",
+                "uv": {
+                    "texture_width": 112,
+                    "texture_height": 16,
+                    "uv": [ "7 * (0.1428 * (math.round(variable.particle_random_2*6)*16))", 0 ],
+                    "uv_size": [ 16, 16 ]
+                }
+            },
+            "minecraft:particle_motion_collision": {
+                "collision_drag": 0.5,
+                "coefficient_of_restitution": 0.1,
+                "collision_radius": 0.025
+            }
+        }
+    }
+}

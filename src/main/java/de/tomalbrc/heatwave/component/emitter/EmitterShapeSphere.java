@@ -1,12 +1,15 @@
 package de.tomalbrc.heatwave.component.emitter;
 
 import com.google.common.collect.ImmutableList;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
+import de.tomalbrc.heatwave.util.EmitterDirection;
 import gg.moonflower.molangcompiler.api.MolangExpression;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
+import java.lang.reflect.Type;
 import java.util.List;
 
 public class EmitterShapeSphere implements ParticleComponent<EmitterShapeSphere> {
@@ -20,5 +23,46 @@ public class EmitterShapeSphere implements ParticleComponent<EmitterShapeSphere>
     public boolean surfaceOnly = false; // default: false
 
     @SerializedName("direction")
-    public JsonElement direction = new JsonPrimitive("outwards"); // default: "outwards"
+    public EmitterDirection direction = EmitterDirection.OUTWARDS; // default: "outwards"
+
+    @SerializedName("direction")
+    public List<MolangExpression> directionList;
+
+    public static class Deserializer implements JsonDeserializer<EmitterShapeSphere> {
+        @Override
+        public EmitterShapeSphere deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            JsonObject jsonObject = json.getAsJsonObject();
+            EmitterShapeSphere sphere = new EmitterShapeSphere();
+
+            if (jsonObject.has("offset")) {
+                sphere.offset = context.deserialize(jsonObject.get("offset"), new TypeToken<List<MolangExpression>>(){}.getType());
+            }
+
+            if (jsonObject.has("radius")) {
+                sphere.radius = context.deserialize(jsonObject.get("radius"), MolangExpression.class);
+            }
+
+            if (jsonObject.has("surface_only")) {
+                sphere.surfaceOnly = jsonObject.get("surface_only").getAsBoolean();
+            }
+
+            if (jsonObject.has("direction")) {
+                JsonElement directionElement = jsonObject.get("direction");
+                if (directionElement.isJsonPrimitive()) {
+                    try {
+                        sphere.direction = EmitterDirection.valueOf(directionElement.getAsString().toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        throw new JsonParseException("Invalid value for EmitterDirection: " + directionElement.getAsString());
+                    }
+                } else if (directionElement.isJsonArray()) {
+                    sphere.directionList = new ObjectArrayList<>();
+                    for (JsonElement element : directionElement.getAsJsonArray()) {
+                        sphere.directionList.add(context.deserialize(element, MolangExpression.class));
+                    }
+                }
+            }
+
+            return sphere;
+        }
+    }
 }

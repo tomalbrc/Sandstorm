@@ -1,10 +1,12 @@
 package de.tomalbrc.heatwave.polymer;
 
+import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.component.ParticleComponentHolder;
 import de.tomalbrc.heatwave.component.ParticleComponentMap;
 import de.tomalbrc.heatwave.component.ParticleComponents;
 import de.tomalbrc.heatwave.curve.Curve;
 import de.tomalbrc.heatwave.io.ParticleEffectFile;
+import de.tomalbrc.heatwave.util.ShapeUtil;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
 import eu.pb4.polymer.virtualentity.api.elements.VirtualElement;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
@@ -16,8 +18,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ParticleEffectHolder extends ElementHolder implements ParticleComponentHolder {
+    private final static ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+
     transient final List<ParticleElement> particleElements = new ObjectArrayList<>();
 
     @NotNull
@@ -32,6 +38,7 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
     private final ServerLevel serverLevel;
 
     public ParticleEffectHolder(ParticleEffectFile effectFile, ServerLevel level) throws MolangRuntimeException {
+        Heatwave.HOLDER.add(this);
         this.serverLevel = level;
         this.effectFile = effectFile;
         this.initComponents(effectFile.effect.components);
@@ -54,6 +61,12 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
         this.initCurves(this.runtime);
     }
 
+    @Override
+    public void destroy() {
+        Heatwave.HOLDER.remove(this);
+        super.destroy();
+    }
+
     private void initCurves(MolangRuntime runtime) {
         var edit = runtime.edit();
         for (Map.Entry<String, Curve> entry : this.effectFile.effect.curves.entrySet()) {
@@ -64,95 +77,6 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
             String varName = index != -1 ? key.substring(index + 1) : key;
             edit.setVariable(varName, val::evaluate);
         }
-    }
-
-    protected Vec3 particleOffset() throws MolangRuntimeException {
-        var point = this.get(ParticleComponents.EMITTER_SHAPE_POINT);
-        if (point != null) {
-            var x = this.runtime.resolve(point.offset.get(0));
-            var y = this.runtime.resolve(point.offset.get(1));
-            var z = this.runtime.resolve(point.offset.get(2));
-            return this.getPos().add(x,y,z);
-        }
-
-        var sphere = this.get(ParticleComponents.EMITTER_SHAPE_SPHERE);
-        if (sphere != null) {
-            var rad = this.runtime.resolve(sphere.radius);
-            var x = this.runtime.resolve(sphere.offset.get(0));
-            var y = this.runtime.resolve(sphere.offset.get(1));
-            var z = this.runtime.resolve(sphere.offset.get(2));
-
-            float theta = (float) (Math.random() * 2 * Math.PI);
-            float phi = (float) Math.acos(2 * Math.random() - 1);
-            float dx = (float) (Math.sin(phi) * Math.cos(theta));
-            float dy = (float) Math.cos(phi);
-            float dz = (float) (Math.sin(phi) * Math.sin(theta));
-
-            return this.getPos()
-                    .add(x, y, z)
-                    .add(
-                            dx * (rad * (sphere.surfaceOnly ? 1 : (float) Math.random())),
-                            dy * (rad * (sphere.surfaceOnly ? 1 : (float) Math.random())),
-                            dz * (rad * (sphere.surfaceOnly ? 1 : (float) Math.random()))
-                    );
-        }
-        var box = this.get(ParticleComponents.EMITTER_SHAPE_BOX);
-        if (box != null) {
-            var w = this.runtime.resolve(box.halfDimensions.get(0));
-            var h = this.runtime.resolve(box.halfDimensions.get(1));
-            var b = this.runtime.resolve(box.halfDimensions.get(2));
-            var x = this.runtime.resolve(box.offset.get(0));
-            var y = this.runtime.resolve(box.offset.get(1));
-            var z = this.runtime.resolve(box.offset.get(2));
-
-            float px, py, pz;
-            if (box.surfaceOnly) {
-                int face = (int) (Math.random() * 6);
-                switch (face) {
-                    case 0 -> { px = w; py = (float) (Math.random() * 2 - 1) * h; pz = (float) (Math.random() * 2 - 1) * b; }
-                    case 1 -> { px = -w; py = (float) (Math.random() * 2 - 1) * h; pz = (float) (Math.random() * 2 - 1) * b; }
-                    case 2 -> { px = (float) (Math.random() * 2 - 1) * w; py = h; pz = (float) (Math.random() * 2 - 1) * b; }
-                    case 3 -> { px = (float) (Math.random() * 2 - 1) * w; py = -h; pz = (float) (Math.random() * 2 - 1) * b; }
-                    case 4 -> { px = (float) (Math.random() * 2 - 1) * w; py = (float) (Math.random() * 2 - 1) * h; pz = b; }
-                    case 5 -> { px = (float) (Math.random() * 2 - 1) * w; py = (float) (Math.random() * 2 - 1) * h; pz = -b; }
-                    default -> throw new IllegalStateException("Unexpected face index: " + face);
-                }
-            } else {
-                px = (float) (Math.random() * 2 - 1) * w;
-                py = (float) (Math.random() * 2 - 1) * h;
-                pz = (float) (Math.random() * 2 - 1) * b;
-            }
-
-            return this.getPos().add(x + px, y + py, z + pz);
-        }
-
-        var disc = this.get(ParticleComponents.EMITTER_SHAPE_DISC);
-        if (disc != null) {
-            var r = this.runtime.resolve(disc.radius);
-            var nx = this.runtime.resolve(disc.planeNormal.get(0));
-            var ny = this.runtime.resolve(disc.planeNormal.get(1));
-            var nz = this.runtime.resolve(disc.planeNormal.get(2));
-            var x = this.runtime.resolve(disc.offset.get(0));
-            var y = this.runtime.resolve(disc.offset.get(1));
-            var z = this.runtime.resolve(disc.offset.get(2));
-
-            float angle = (float) (Math.random() * 2 * Math.PI);
-            float radius = disc.surfaceOnly ? r : (float) Math.random() * r;
-
-            float dx = (float) (Math.cos(angle) * radius);
-            float dy = (float) (Math.sin(angle) * radius);
-
-            // orthogonal vector
-            float ux = ny * nz - nx * nz; // cross prod
-            float uy = -nx * nz;
-            float uz = nx * ny;
-
-            return this.getPos()
-                    .add(x, y, z)
-                    .add(nx * dx + ux * dy, ny * dx + uy * dy, nz * dx + uz * dy);
-        }
-
-        return this.getPos();
     }
 
     @NotNull
@@ -168,13 +92,14 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
         float lifetime = 1;
         var looping = this.get(ParticleComponents.EMITTER_LIFETIME_LOOPING);
         var once = this.get(ParticleComponents.EMITTER_LIFETIME_ONCE);
+
         if (looping != null) {
             var max = lifetime = runtime.resolve(looping.activeTime);
-            var sleeptime = runtime.resolve(looping.sleepTime);
+            var sleepTime = runtime.resolve(looping.sleepTime);
             if (this.age * (1.f/20.f) >= max) {
                 // todo: check loop delay
                 this.canEmit = false;
-                if ((this.age+sleeptime) * (1.f/20.f) >= max) {
+                if ((this.age+sleepTime) * (1.f/20.f) >= max) {
                     this.age = 0;
                     this.canEmit = true;
                 }
@@ -183,6 +108,7 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
         if (once != null) {
             var max = lifetime = runtime.resolve(once.activeTime);
             if (this.age*(1.f/20.f) >= max) {
+                this.canEmit = false;
                 this.destroy();
             }
         }
@@ -214,13 +140,14 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
 
         try {
             this.updatePosition();
-
             this.handlePerUpdateExpression();
 
-            for (ParticleElement e : this.particleElements) {
-                e.updateRuntimePerParticle(this.runtime);
-                e.tick();
+            for (int i = 0; i < this.particleElements.size(); i++) {
+                this.particleElements.get(i).updateRuntimePerParticle(this.runtime);
+                this.particleElements.get(i).tick();
             }
+
+            ParticleEffectHolder.executor.submit(this::asyncTick);
 
             this.emitOrRemoveParticles();
             this.updateRuntimePerEmitter(this.runtime); // todo: call earlier
@@ -229,6 +156,12 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
         }
 
         this.age++;
+    }
+
+    private void asyncTick() {
+        for (int i = 0; i < this.particleElements.size(); i++) {
+            this.particleElements.get(i).asyncTick();
+        }
     }
 
     private void emitOrRemoveParticles() throws MolangRuntimeException {
@@ -264,18 +197,25 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
     }
 
     private void emit() throws MolangRuntimeException {
-        var particle = new ParticleElement(this);
+        ParticleElement particle = new ParticleElement(this);
+        InitialParticleData particleData = ShapeUtil.initialParticleData(this.runtime, this);
+        var pos = this.getPos().add(particleData.offset);
+        particle.setPos(pos.x, pos.y, pos.z);
         var initSpeed = this.get(ParticleComponents.PARTICLE_INITIAL_SPEED);
         if (initSpeed != null) {
-            var n = new Vec3(particle.x(), particle.y(), particle.z()).subtract(this.getPos()).normalize();
             var sx = this.runtime.resolve(initSpeed.value().get(0));
             var sy = initSpeed.value().size() > 1 ? this.runtime.resolve(initSpeed.value().get(1)) : sx;
             var sz = initSpeed.value().size() > 1 ? this.runtime.resolve(initSpeed.value().get(2)) : sx;
             particle.setDelta(
-                    (float) (n.x * sx),
-                    (float) (n.y * sy),
-                    (float) (n.z * sz)
+                    (float) (particleData.direction.x * sx),
+                    (float) (particleData.direction.y * sy),
+                    (float) (particleData.direction.z * sz)
             );
+        }
+        var initSpin = this.get(ParticleComponents.PARTICLE_INITIAL_SPIN);
+        if (initSpin != null) {
+            particle.setRoll(this.runtime.resolve(initSpin.rotation));
+            particle.setRollAccel(this.runtime.resolve(initSpin.rotationRate));
         }
         this.addElement(particle);
     }
@@ -301,5 +241,12 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
 
     public ServerLevel serverLevel() {
         return this.serverLevel;
+    }
+
+    public record InitialParticleData(Vec3 offset, Vec3 direction) {
+        public static final InitialParticleData ZERO = InitialParticleData.of(Vec3.ZERO, Vec3.ZERO);
+        public static InitialParticleData of(Vec3 offset, Vec3 direction) {
+            return new InitialParticleData(offset, direction);
+        }
     }
 }

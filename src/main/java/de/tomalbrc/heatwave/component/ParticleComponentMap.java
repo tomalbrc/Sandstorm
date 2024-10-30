@@ -64,9 +64,9 @@ public class ParticleComponentMap {
                 }
 
                 ParticleComponent<?> deserialized;
-                if (entry.getValue().isJsonPrimitive() && entry.getValue().getAsJsonPrimitive().isNumber()) {
-                    float value = entry.getValue().getAsFloat();
-                    deserialized = createNumericComponent(componentType, value);
+                if (entry.getValue().isJsonPrimitive()) {
+                    String value = entry.getValue().getAsString();
+                    deserialized = createComponent(componentType, value);
                 } else {
                     deserialized = jsonDeserializationContext.deserialize(entry.getValue(), componentType.type());
                 }
@@ -77,10 +77,10 @@ public class ParticleComponentMap {
         }
     }
 
-    private static ParticleComponent<?> createNumericComponent(ParticleComponentType<ParticleComponent<?>> componentType, float value) {
+    private static <T> ParticleComponent<?> createComponent(ParticleComponentType<ParticleComponent<?>> componentType, T value) {
         Class<? extends ParticleComponent<?>> clazz = componentType.type();
         try {
-            Constructor<? extends ParticleComponent<?>> constructor = clazz.getConstructor(float.class);
+            Constructor<? extends ParticleComponent<?>> constructor = clazz.getConstructor(value.getClass());
             return constructor.newInstance(value);
         } catch (Exception e) {
             throw new RuntimeException(e);

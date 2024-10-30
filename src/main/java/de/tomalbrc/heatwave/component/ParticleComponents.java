@@ -13,10 +13,10 @@ public class ParticleComponents {
     public static final ParticleComponentType<EmitterLifetimeEvents> EMITTER_LIFETIME_EVENTS = registerVanillaComponent("emitter_lifetime_events", EmitterLifetimeEvents.class);
     public static final ParticleComponentType<EmitterLifetimeExpression> EMITTER_LIFETIME_EXPRESSION = registerVanillaComponent("emitter_lifetime_expression", EmitterLifetimeExpression.class);
     public static final ParticleComponentType<EmitterLifetimeOnce> EMITTER_LIFETIME_ONCE = registerVanillaComponent("emitter_lifetime_once", EmitterLifetimeOnce.class);
+    public static final ParticleComponentType<EmitterShapeEntityAABB> EMITTER_SHAPE_ENTITY_AABB = registerVanillaComponent("emitter_shape_entity_aabb", EmitterShapeEntityAABB.class);
     public static final ParticleComponentType<EmitterShapeDisc> EMITTER_SHAPE_DISC = registerVanillaComponent("emitter_shape_disc", EmitterShapeDisc.class);
     public static final ParticleComponentType<EmitterShapeBox> EMITTER_SHAPE_BOX = registerVanillaComponent("emitter_shape_box", EmitterShapeBox.class);
     public static final ParticleComponentType<EmitterShapeCustom> EMITTER_SHAPE_CUSTOM = registerVanillaComponent("emitter_shape_custom", EmitterShapeCustom.class);
-    public static final ParticleComponentType<EmitterShapeEntityAABB> EMITTER_SHAPE_ENTITY_AABB = registerVanillaComponent("emitter_shape_entity_aabb", EmitterShapeEntityAABB.class);
     public static final ParticleComponentType<EmitterShapePoint> EMITTER_SHAPE_POINT = registerVanillaComponent("emitter_shape_point", EmitterShapePoint.class);
     public static final ParticleComponentType<EmitterShapeSphere> EMITTER_SHAPE_SPHERE = registerVanillaComponent("emitter_shape_sphere", EmitterShapeSphere.class);
     public static final ParticleComponentType<EmitterRateInstant> EMITTER_RATE_INSTANT = registerVanillaComponent("emitter_rate_instant", EmitterRateInstant.class);
