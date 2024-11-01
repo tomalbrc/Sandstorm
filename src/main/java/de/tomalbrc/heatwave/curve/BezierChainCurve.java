@@ -17,7 +17,7 @@ public class BezierChainCurve implements Curve {
 
     @Override
     public float evaluate(MolangEnvironment environment) throws MolangRuntimeException {
-        return environment.resolve(this.input);
+        throw new UnsupportedOperationException("bezier_chain is not supported");
     }
 
     public static class Node {

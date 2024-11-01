@@ -11,6 +11,7 @@ import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.util.Brightness;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Display;
@@ -55,8 +56,8 @@ public class ParticleElement extends ItemDisplayElement {
 
     protected float bbRadius = 0.2f;
 
-    protected final float random_2 = (float) Math.random();
     protected final float random_1 = (float) Math.random();
+    protected final float random_2 = (float) Math.random();
     protected final float random_3 = (float) Math.random();
     protected final float random_4 = (float) Math.random();
 
@@ -88,8 +89,8 @@ public class ParticleElement extends ItemDisplayElement {
         this.setSendPositionUpdates(true);
         this.setInvisible(true);
         this.setDisplaySize(0.2f, 0.2f);
-        this.setInterpolationDuration(2);
-        this.setTeleportDuration(1);
+        this.setInterpolationDuration(3);
+        this.setTeleportDuration(2);
 
         if (!this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_LIGHTING))
             this.setBrightness(Brightness.FULL_BRIGHT);
@@ -161,7 +162,8 @@ public class ParticleElement extends ItemDisplayElement {
             }
 
             if (this.dynamicMotion) {
-                var accel = this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearAcceleration;
+                var dynMotion = this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC);
+                var accel = dynMotion.linearAcceleration;
                 var xa = this.parent.runtime().resolve(accel.get(0));
                 var ya = this.parent.runtime().resolve(accel.get(1));
                 var za = this.parent.runtime().resolve(accel.get(2));
@@ -180,6 +182,14 @@ public class ParticleElement extends ItemDisplayElement {
                         this.yd * Heatwave.TIME_SCALE,
                         this.zd * Heatwave.TIME_SCALE
                 );
+
+                var ra = this.parent.runtime().resolve(dynMotion.rotationAcceleration);
+                var rdc = this.parent.runtime().resolve(dynMotion.rotationDragCoefficient);
+                ra -= rdc * this.rolld;
+                this.rolld += ra * Heatwave.TIME_SCALE;
+
+                if (this.rolld != 0)
+                    this.roll += this.rolld * Heatwave.TIME_SCALE;
             }
 
             if (this.onGround) {
@@ -270,7 +280,7 @@ public class ParticleElement extends ItemDisplayElement {
             var size = this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD).size;
             var x = this.parent.runtime().resolve(size.get(0));
             var y = this.parent.runtime().resolve(size.get(1));
-            var scale = new Vector3f(Float.isNaN(x) ? 0 : 3.f*x, Float.isNaN(y) ? 0 : 3.f*y, 1);
+            var scale = new Vector3f(Float.isNaN(x) ? 0 : x*3.f, Float.isNaN(y) ? 0 : y*3.f, 1);
             if (!this.getScale().equals(scale, 0.001f)) {
                 this.setScale(scale);
                 this.sendTrackerUpdates();
@@ -296,7 +306,19 @@ public class ParticleElement extends ItemDisplayElement {
         this.startInterpolationIfDirty();
     }
 
-    public void remove() {
+    @Override
+    protected void sendTrackerUpdates() {
+        if (parent.getAttachment() != null && (parent.getAttachment().getWorld().getGameTime()%2==0 ||this.age <= 1))
+            super.sendTrackerUpdates();
+    }
+
+    @Override
+    protected void sendPositionUpdates() {
+        if (parent.getAttachment() != null && (parent.getAttachment().getWorld().getGameTime()%2==0 || this.age <= 1))
+            super.sendPositionUpdates();
+    }
+
+        public void remove() {
         this.removed = true;
     }
 

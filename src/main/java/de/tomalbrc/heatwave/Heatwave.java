@@ -18,7 +18,7 @@ public class Heatwave implements ModInitializer {
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final String MOD_ID = "heatwave";
     public static final MolangCompiler MOLANG = MolangCompiler.create(MolangCompiler.DEFAULT_FLAGS, Heatwave.class.getClassLoader());
-    public static final float TIME_SCALE = 1.f / 20.f;
+    public static final float TIME_SCALE = 1.f / 20.f; // 20 tps based
 
     public static List<ParticleEffectHolder> HOLDER = new ObjectArrayList<>();
 

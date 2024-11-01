@@ -136,8 +136,6 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
     public void tick() {
         if (this.getAttachment() == null)
             return;
-        if (this.getAttachment().getWorld().getGameTime() % 2 == 0)
-            return;
 
         try {
             this.updatePosition();
@@ -166,33 +164,39 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
     }
 
     private void emitOrRemoveParticles() throws MolangRuntimeException {
+        for (int i = this.particleElements.size() - 1; i >= 0; i--) {
+            ParticleElement particleElement = this.particleElements.get(i);
+            if (particleElement.isRemoved()) {
+                this.removeElement(particleElement);
+            }
+        }
+
+        if (!this.canEmit() || this.particleElements.size() > 10_000) // 10k as safety guard :P
+            return;
+
         var steady = this.get(ParticleComponents.EMITTER_RATE_STEADY);
         var instant = this.get(ParticleComponents.EMITTER_RATE_INSTANT);
+        var manual = this.get(ParticleComponents.EMITTER_RATE_MANUAL);
 
         if (steady != null) {
             var maxParticles = runtime.resolve(this.get(ParticleComponents.EMITTER_RATE_STEADY).maxParticles);
             var spawnRate = runtime.resolve(this.get(ParticleComponents.EMITTER_RATE_STEADY).spawnRate) * Heatwave.TIME_SCALE;
 
-            if (this.canEmit()) {
-                int particlesToSpawn = (int)spawnRate;
-                for (int i = 0; i < particlesToSpawn && this.particleElements.size() <= maxParticles; i++) {
-                    this.emit();
-                }
+            int particlesToSpawn = (int)spawnRate;
+            for (int i = 0; i < particlesToSpawn && this.particleElements.size() <= maxParticles; i++) {
+                this.emit();
+            }
+        }
+        else if (manual != null) {
+            var max = this.runtime.resolve(manual.maxParticles);
+            for (int i = 0; i < max; i++) {
+                this.emit();
             }
         }
         else if (this.age == 0 && instant != null) {
-            if (this.canEmit()) {
-                int particlesToSpawn = (int) this.runtime.resolve(instant.numParticles);
-                for (int i = 0; i < particlesToSpawn; i++) {
-                    this.emit();
-                }
-            }
-        }
-
-        for (int i = this.particleElements.size() - 1; i >= 0; i--) {
-            ParticleElement particleElement = this.particleElements.get(i);
-            if (particleElement.isRemoved()) {
-                this.removeElement(particleElement);
+            int particlesToSpawn = (int) this.runtime.resolve(instant.numParticles);
+            for (int i = 0; i < particlesToSpawn; i++) {
+                this.emit();
             }
         }
     }
