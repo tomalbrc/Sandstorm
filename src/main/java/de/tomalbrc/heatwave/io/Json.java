@@ -17,22 +17,15 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
-import org.joml.Quaternionf;
-import org.joml.Vector2f;
-import org.joml.Vector3f;
 
 import java.lang.reflect.Type;
 
 public class Json {
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
-            .registerTypeHierarchyAdapter(Vector3f.class, new Vector3fDeserializer())
-            .registerTypeHierarchyAdapter(Vector2f.class, new Vector2fDeserializer())
-            .registerTypeHierarchyAdapter(Quaternionf.class, new QuaternionfDeserializer())
             .registerTypeHierarchyAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
             .registerTypeHierarchyAdapter(ItemDisplayContext.class, new ItemDisplayContextDeserializer())
             .registerTypeHierarchyAdapter(Block.class, new RegistryDeserializer<>(BuiltInRegistries.BLOCK))
@@ -78,56 +71,6 @@ public class Json {
             } catch (MolangSyntaxException e) {
                 throw new JsonParseException(e);
             }
-        }
-    }
-
-    public static class QuaternionfDeserializer implements JsonDeserializer<Quaternionf> {
-        @Override
-        public Quaternionf deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            JsonArray jsonArray = jsonElement.getAsJsonArray();
-
-            if (jsonArray.size() < 3) {
-                throw new JsonParseException("Array size should be at least 3 for euler angle deserialization.");
-            }
-
-            float x = jsonArray.get(0).getAsFloat();
-            float y = jsonArray.get(1).getAsFloat();
-            float z = jsonArray.get(2).getAsFloat();
-
-            return new Quaternionf().rotateXYZ(x * Mth.DEG_TO_RAD, y * Mth.DEG_TO_RAD, z * Mth.DEG_TO_RAD);
-        }
-    }
-
-    public static class Vector3fDeserializer implements JsonDeserializer<Vector3f> {
-        @Override
-        public Vector3f deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            JsonArray jsonArray = jsonElement.getAsJsonArray();
-
-            if (jsonArray.size() < 3) {
-                throw new JsonParseException("Array size should be at least 3 for Vector3f deserialization.");
-            }
-
-            float x = jsonArray.get(0).getAsFloat();
-            float y = jsonArray.get(1).getAsFloat();
-            float z = jsonArray.get(2).getAsFloat();
-
-            return new Vector3f(x, y, z);
-        }
-    }
-
-    public static class Vector2fDeserializer implements JsonDeserializer<Vector2f> {
-        @Override
-        public Vector2f deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            JsonArray jsonArray = jsonElement.getAsJsonArray();
-
-            if (jsonArray.size() < 2) {
-                throw new JsonParseException("Array size should be at least 2 for Vector2f deserialization.");
-            }
-
-            float x = jsonArray.get(0).getAsFloat();
-            float y = jsonArray.get(1).getAsFloat();
-
-            return new Vector2f(x, y);
         }
     }
 

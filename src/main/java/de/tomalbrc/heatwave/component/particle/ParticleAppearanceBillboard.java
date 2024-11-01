@@ -20,6 +20,7 @@ public class ParticleAppearanceBillboard implements ParticleComponent<ParticleAp
     public DirectionConfig direction = new DirectionConfig();
 
     public UvConfig uv;
+    public Flipbook flipbook;
 
     public static class UvConfig {
         @SerializedName("texture_width")
@@ -27,10 +28,20 @@ public class ParticleAppearanceBillboard implements ParticleComponent<ParticleAp
         @SerializedName("texture_height")
         public int textureHeight;
 
-        public List<MolangExpression> uv;
+        public MolangExpression[] uv;
 
         @SerializedName("uv_size")
-        public List<MolangExpression> uvSize;
+        public MolangExpression[] uvSize;
+    }
+
+    public static class Flipbook {
+        public MolangExpression[] base_UV;
+        public float[] size_UV;
+        public float[] step_UV;
+        public float frames_per_second;
+        public MolangExpression max_frame;
+        public boolean stretch_to_lifetime = false;
+        public boolean loop = false;
     }
 
     public enum CameraMode {

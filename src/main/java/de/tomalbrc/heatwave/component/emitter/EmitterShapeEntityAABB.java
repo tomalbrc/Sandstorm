@@ -12,5 +12,5 @@ public class EmitterShapeEntityAABB implements ParticleComponent<EmitterShapeEnt
     public boolean surfaceOnly = false; // default: false
 
     @SerializedName("direction")
-    public List<MolangExpression> direction = ImmutableList.of(MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO); // default: [0, 0, 0]
+    public MolangExpression[] direction = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO};; // default: [0, 0, 0]
 }

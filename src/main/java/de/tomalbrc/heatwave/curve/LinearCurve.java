@@ -8,7 +8,7 @@ import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import java.util.List;
 
 public class LinearCurve implements Curve {
-    public List<MolangExpression> nodes;
+    public MolangExpression[] nodes;
     public MolangExpression input;
 
     @SerializedName("horizontal_range")
@@ -19,15 +19,15 @@ public class LinearCurve implements Curve {
         float resolvedRange = environment.resolve(this.horizontalRange);
         float normalizedInput = resolvedInput / resolvedRange;
 
-        if (nodes.size() < 2) throw new MolangRuntimeException("LinearCurve requires at least two nodes to interpolate.");
+        if (nodes.length < 2) throw new MolangRuntimeException("LinearCurve requires at least two nodes to interpolate.");
 
-        int leftIndex = Math.min((int) (normalizedInput * (nodes.size() - 1)), nodes.size() - 2);
+        int leftIndex = Math.min((int) (normalizedInput * (nodes.length - 1)), nodes.length - 2);
         int rightIndex = leftIndex + 1;
 
-        float leftNode = environment.resolve(nodes.get(leftIndex));
-        float rightNode = environment.resolve(nodes.get(rightIndex));
+        float leftNode = environment.resolve(nodes[leftIndex]);
+        float rightNode = environment.resolve(nodes[rightIndex]);
 
-        float t = (normalizedInput * (nodes.size() - 1)) - leftIndex;
+        float t = (normalizedInput * (nodes.length - 1)) - leftIndex;
         return leftNode + t * (rightNode - leftNode);
     }
 }

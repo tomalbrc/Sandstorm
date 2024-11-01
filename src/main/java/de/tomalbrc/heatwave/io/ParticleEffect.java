@@ -14,10 +14,10 @@ public class ParticleEffect {
 
     public Map<String, Curve> curves = ImmutableMap.of();
 
-    @SerializedName("basic_render_parameters")
-    public Map<String, String> renderParameters;
-
     public static class Description {
         public ResourceLocation identifier;
+
+        @SerializedName("basic_render_parameters")
+        public Map<String, String> renderParameters;
     }
 }

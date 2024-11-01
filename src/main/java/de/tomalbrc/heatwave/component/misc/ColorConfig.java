@@ -6,6 +6,7 @@ import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.util.Mth;
 
 import java.util.Comparator;
 import java.util.List;
@@ -19,7 +20,7 @@ public class ColorConfig {
 
     public int color(MolangRuntime runtime) throws MolangRuntimeException {
         var interpolantValue = runtime.resolve(interpolant);
-        return getInterpolatedColor(gradient, interpolantValue);
+        return getInterpolatedColor(this.gradient, Mth.clamp(interpolantValue, 0.f,1.f));
     }
 
     record GradientStop(float position, int color) {}
@@ -48,20 +49,24 @@ public class ColorConfig {
 
         assert lowerStop != null && upperStop != null;
 
-        float t = (variableRainbow - lowerStop.position) / (upperStop.position - lowerStop.position);
+        int lowerColor = lowerStop.color;
+        int upperColor = upperStop.color;
 
-        int lowerRed = (lowerStop.color >> 16) & 0xFF;
-        int lowerGreen = (lowerStop.color >> 8) & 0xFF;
-        int lowerBlue = lowerStop.color & 0xFF;
+        int lowerAlpha = (lowerColor >> 24) & 0xFF;
+        int lowerRed   = (lowerColor >> 16) & 0xFF;
+        int lowerGreen = (lowerColor >> 8) & 0xFF;
+        int lowerBlue  = lowerColor & 0xFF;
 
-        int upperRed = (upperStop.color >> 16) & 0xFF;
-        int upperGreen = (upperStop.color >> 8) & 0xFF;
-        int upperBlue = upperStop.color & 0xFF;
+        int upperAlpha = (upperColor >> 24) & 0xFF;
+        int upperRed   = (upperColor >> 16) & 0xFF;
+        int upperGreen = (upperColor >> 8) & 0xFF;
+        int upperBlue  = upperColor & 0xFF;
 
-        int red = (int) (lowerRed + t * (upperRed - lowerRed));
-        int green = (int) (lowerGreen + t * (upperGreen - lowerGreen));
-        int blue = (int) (lowerBlue + t * (upperBlue - lowerBlue));
+        int interpAlpha = (int) Mth.lerp(variableRainbow, lowerAlpha, upperAlpha);
+        int interpRed   = (int) Mth.lerp(variableRainbow, lowerRed, upperRed);
+        int interpGreen = (int) Mth.lerp(variableRainbow, lowerGreen, upperGreen);
+        int interpBlue  = (int) Mth.lerp(variableRainbow, lowerBlue, upperBlue);
 
-        return (red << 16) | (green << 8) | blue;
+        return (interpAlpha << 24) | (interpRed << 16) | (interpGreen << 8) | interpBlue;
     }
 }

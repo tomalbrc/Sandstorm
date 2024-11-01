@@ -10,14 +10,16 @@ import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.util.Brightness;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
@@ -81,16 +83,17 @@ public class ParticleElement extends ItemDisplayElement {
 
         this.updateRuntimePerParticle(this.parent.runtime());
 
-        this.item = ParticleModels.modelData(particleEffectHolder.getEffectFile()).asStack();
+        this.item = ParticleModels.modelData(particleEffectHolder.getEffectFile(), 0).asStack();
 
         if (this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD))
             this.setBillboardMode(Display.BillboardConstraints.CENTER);
 
         this.setSendPositionUpdates(true);
+        this.setModelTransformation(ItemDisplayContext.HEAD);
         this.setInvisible(true);
         this.setDisplaySize(0.2f, 0.2f);
-        this.setInterpolationDuration(3);
-        this.setTeleportDuration(2);
+        this.setInterpolationDuration(2);
+        this.setTeleportDuration(1);
 
         if (!this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_LIGHTING))
             this.setBrightness(Brightness.FULL_BRIGHT);
@@ -131,6 +134,30 @@ public class ParticleElement extends ItemDisplayElement {
     }
 
     private boolean alive(int age) throws MolangRuntimeException {
+        if (this.parent.getAttachment() == null)
+            return false;
+
+        var inBlocks = get(ParticleComponents.PARTICLE_EXPIRE_IF_IN_BLOCKS);
+        var notInBlocks = get(ParticleComponents.PARTICLE_EXPIRE_IF_NOT_IN_BLOCKS);
+
+        BlockState bs = inBlocks != null || notInBlocks != null ? this.parent.getAttachment().getWorld().getBlockState(BlockPos.containing(x,y,z)) : null;
+
+        if (inBlocks != null) {
+            for (int i = 0; i < inBlocks.blocks.length; i++) {
+                if (inBlocks.blocks[i] == bs.getBlock())
+                    return false;
+            }
+        }
+
+        if (notInBlocks != null) {
+            for (int i = 0; i < notInBlocks.blocks.length; i++) {
+                if (notInBlocks.blocks[i] == bs.getBlock())
+                    return true;
+            }
+        }
+
+
+
         var scaledAge = (float)this.age * Heatwave.TIME_SCALE;
         return this.maxLifetime != null && scaledAge < this.parent.runtime().resolve(this.maxLifetime) || this.lifetimeExpression != null && age < this.parent.runtime().resolve(this.lifetimeExpression);
     }
@@ -148,14 +175,14 @@ public class ParticleElement extends ItemDisplayElement {
 
             if (this.parametricMotion) {
                 var para = this.parent.get(ParticleComponents.PARTICLE_MOTION_PARAMETRIC);
-                this.x = this.parent.runtime().resolve(para.relativePosition.get(0));
-                this.y = this.parent.runtime().resolve(para.relativePosition.get(1));
-                this.z = this.parent.runtime().resolve(para.relativePosition.get(2));
+                this.x = this.parent.runtime().resolve(para.relativePosition[0]);
+                this.y = this.parent.runtime().resolve(para.relativePosition[1]);
+                this.z = this.parent.runtime().resolve(para.relativePosition[2]);
 
-                if (!para.direction.isEmpty()) {
-                    this.xd = this.parent.runtime().resolve(para.direction.get(0));
-                    this.yd = this.parent.runtime().resolve(para.direction.get(1));
-                    this.zd = this.parent.runtime().resolve(para.direction.get(2));
+                if (para.direction.length > 0) {
+                    this.xd = this.parent.runtime().resolve(para.direction[0]);
+                    this.yd = this.parent.runtime().resolve(para.direction[1]);
+                    this.zd = this.parent.runtime().resolve(para.direction[2]);
                 }
 
                 this.roll = this.parent.runtime().resolve(para.rotation);
@@ -164,9 +191,9 @@ public class ParticleElement extends ItemDisplayElement {
             if (this.dynamicMotion) {
                 var dynMotion = this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC);
                 var accel = dynMotion.linearAcceleration;
-                var xa = this.parent.runtime().resolve(accel.get(0));
-                var ya = this.parent.runtime().resolve(accel.get(1));
-                var za = this.parent.runtime().resolve(accel.get(2));
+                var xa = this.parent.runtime().resolve(accel[0]);
+                var ya = this.parent.runtime().resolve(accel[1]);
+                var za = this.parent.runtime().resolve(accel[2]);
 
                 float dragCoefficient = this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearDragCoefficient);
                 xa -= dragCoefficient * this.xd;
@@ -306,19 +333,7 @@ public class ParticleElement extends ItemDisplayElement {
         this.startInterpolationIfDirty();
     }
 
-    @Override
-    protected void sendTrackerUpdates() {
-        if (parent.getAttachment() != null && (parent.getAttachment().getWorld().getGameTime()%2==0 ||this.age <= 1))
-            super.sendTrackerUpdates();
-    }
-
-    @Override
-    protected void sendPositionUpdates() {
-        if (parent.getAttachment() != null && (parent.getAttachment().getWorld().getGameTime()%2==0 || this.age <= 1))
-            super.sendPositionUpdates();
-    }
-
-        public void remove() {
+    public void remove() {
         this.removed = true;
     }
 

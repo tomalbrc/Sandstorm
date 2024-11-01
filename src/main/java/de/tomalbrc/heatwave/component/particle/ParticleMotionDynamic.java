@@ -9,7 +9,7 @@ import java.util.List;
 
 public class ParticleMotionDynamic implements ParticleComponent<ParticleMotionDynamic> {
     @SerializedName("linear_acceleration")
-    public List<MolangExpression> linearAcceleration = ImmutableList.of(MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO);
+    public MolangExpression[] linearAcceleration = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO};;
     @SerializedName("linear_drag_coefficient")
     public MolangExpression linearDragCoefficient = MolangExpression.ZERO;
     @SerializedName("rotation_acceleration")

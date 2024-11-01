@@ -14,7 +14,7 @@ import java.util.List;
 
 public class EmitterShapeSphere implements ParticleComponent<EmitterShapeSphere> {
     @SerializedName("offset")
-    public List<MolangExpression> offset = ImmutableList.of(MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO); // default: [0, 0, 0]
+    public MolangExpression[] offset = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO};; // default: [0, 0, 0]
 
     @SerializedName("radius")
     public MolangExpression radius = MolangExpression.of(1); // default: 1
@@ -35,7 +35,7 @@ public class EmitterShapeSphere implements ParticleComponent<EmitterShapeSphere>
             EmitterShapeSphere sphere = new EmitterShapeSphere();
 
             if (jsonObject.has("offset")) {
-                sphere.offset = context.deserialize(jsonObject.get("offset"), new TypeToken<List<MolangExpression>>(){}.getType());
+                sphere.offset = context.deserialize(jsonObject.get("offset"), MolangExpression[].class);
             }
 
             if (jsonObject.has("radius")) {

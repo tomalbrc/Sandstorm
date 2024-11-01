@@ -15,10 +15,10 @@ import java.util.List;
 // Emitter Shape Components
 public class EmitterShapeDisc implements ParticleComponent<EmitterShapeDisc> {
     @SerializedName("plane_normal")
-    public List<MolangExpression> planeNormal = ImmutableList.of(MolangExpression.ZERO, MolangExpression.of(1), MolangExpression.ZERO); // default: [0, 1, 0]
+    public MolangExpression[] planeNormal = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.of(1), MolangExpression.ZERO}; // default: [0, 1, 0]
 
     @SerializedName("offset")
-    public List<MolangExpression> offset = ImmutableList.of(MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO); // default: [0, 0, 0]
+    public MolangExpression[] offset = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO};; // default: [0, 0, 0]
 
     @SerializedName("radius")
     public MolangExpression radius = MolangExpression.of(1); // default: 1
@@ -30,7 +30,7 @@ public class EmitterShapeDisc implements ParticleComponent<EmitterShapeDisc> {
     public EmitterDirection direction = EmitterDirection.OUTWARDS; // default: "outwards"
 
     @SerializedName("direction")
-    public List<MolangExpression> directionList;
+    public MolangExpression[] directionList;
 
     public static class Deserializer implements JsonDeserializer<EmitterShapeDisc> {
         @Override
@@ -39,11 +39,11 @@ public class EmitterShapeDisc implements ParticleComponent<EmitterShapeDisc> {
             EmitterShapeDisc disc = new EmitterShapeDisc();
 
             if (jsonObject.has("plane_normal")) {
-                disc.planeNormal = context.deserialize(jsonObject.get("plane_normal"), new TypeToken<List<MolangExpression>>(){}.getType());
+                disc.planeNormal = context.deserialize(jsonObject.get("plane_normal"), MolangExpression[].class);
             }
 
             if (jsonObject.has("offset")) {
-                disc.offset = context.deserialize(jsonObject.get("offset"), new TypeToken<List<MolangExpression>>(){}.getType());
+                disc.offset = context.deserialize(jsonObject.get("offset"), MolangExpression[].class);
             }
 
             if (jsonObject.has("radius")) {
@@ -63,9 +63,10 @@ public class EmitterShapeDisc implements ParticleComponent<EmitterShapeDisc> {
                         throw new JsonParseException("Invalid value for EmitterDirection: " + directionElement.getAsString());
                     }
                 } else if (directionElement.isJsonArray()) {
-                    disc.directionList = new ObjectArrayList<>();
-                    for (JsonElement element : directionElement.getAsJsonArray()) {
-                        disc.directionList.add(context.deserialize(element, MolangExpression.class));
+                    var arr = directionElement.getAsJsonArray();
+                    disc.directionList = new MolangExpression[arr.size()];
+                    for (int i = 0; i < arr.size(); i++) {
+                        disc.directionList[i] = context.deserialize(arr.get(i), MolangExpression.class);
                     }
                 }
             }

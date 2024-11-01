@@ -10,21 +10,21 @@ public class ShapeUtil {
     public static ParticleEffectHolder.InitialParticleData initialParticleData(MolangRuntime runtime, ParticleEffectHolder holder) throws MolangRuntimeException {
         var point = holder.get(ParticleComponents.EMITTER_SHAPE_POINT);
         if (point != null) {
-            var x = runtime.resolve(point.offset.get(0));
-            var y = runtime.resolve(point.offset.get(1));
-            var z = runtime.resolve(point.offset.get(2));
-            var dx = runtime.resolve(point.direction.get(0));
-            var dy = runtime.resolve(point.direction.get(1));
-            var dz = runtime.resolve(point.direction.get(2));
+            var x = runtime.resolve(point.offset[0]);
+            var y = runtime.resolve(point.offset[1]);
+            var z = runtime.resolve(point.offset[2]);
+            var dx = runtime.resolve(point.direction[0]);
+            var dy = runtime.resolve(point.direction[1]);
+            var dz = runtime.resolve(point.direction[2]);
             return ParticleEffectHolder.InitialParticleData.of(new Vec3(x,y,z), new Vec3(dx, dy, dz));
         }
 
         var sphere = holder.get(ParticleComponents.EMITTER_SHAPE_SPHERE);
         if (sphere != null) {
             var rad = runtime.resolve(sphere.radius);
-            var x = runtime.resolve(sphere.offset.get(0));
-            var y = runtime.resolve(sphere.offset.get(1));
-            var z = runtime.resolve(sphere.offset.get(2));
+            var x = runtime.resolve(sphere.offset[0]);
+            var y = runtime.resolve(sphere.offset[1]);
+            var z = runtime.resolve(sphere.offset[2]);
 
             float theta = (float) (Math.random() * 2 * Math.PI);
             float phi = (float) Math.acos(2 * Math.random() - 1);
@@ -54,12 +54,12 @@ public class ShapeUtil {
 
         var box = holder.get(ParticleComponents.EMITTER_SHAPE_BOX);
         if (box != null) {
-            var w = runtime.resolve(box.halfDimensions.get(0));
-            var h = runtime.resolve(box.halfDimensions.get(1));
-            var b = runtime.resolve(box.halfDimensions.get(2));
-            var x = runtime.resolve(box.offset.get(0));
-            var y = runtime.resolve(box.offset.get(1));
-            var z = runtime.resolve(box.offset.get(2));
+            var w = runtime.resolve(box.halfDimensions[0]);
+            var h = runtime.resolve(box.halfDimensions[1]);
+            var b = runtime.resolve(box.halfDimensions[2]);
+            var x = runtime.resolve(box.offset[0]);
+            var y = runtime.resolve(box.offset[1]);
+            var z = runtime.resolve(box.offset[2]);
 
             float px = 0, py = 0, pz = 0;
             if (box.surfaceOnly) {
@@ -95,12 +95,12 @@ public class ShapeUtil {
         var disc = holder.get(ParticleComponents.EMITTER_SHAPE_DISC);
         if (disc != null) {
             var r = runtime.resolve(disc.radius);
-            var nx = runtime.resolve(disc.planeNormal.get(0));
-            var ny = runtime.resolve(disc.planeNormal.get(1));
-            var nz = runtime.resolve(disc.planeNormal.get(2));
-            var x = runtime.resolve(disc.offset.get(0));
-            var y = runtime.resolve(disc.offset.get(1));
-            var z = runtime.resolve(disc.offset.get(2));
+            var nx = runtime.resolve(disc.planeNormal[0]);
+            var ny = runtime.resolve(disc.planeNormal[1]);
+            var nz = runtime.resolve(disc.planeNormal[2]);
+            var x = runtime.resolve(disc.offset[0]);
+            var y = runtime.resolve(disc.offset[1]);
+            var z = runtime.resolve(disc.offset[2]);
 
             float angle = (float) (Math.random() * 2 * Math.PI);
             float radius = disc.surfaceOnly ? r : (float) Math.random() * r;
@@ -116,11 +116,11 @@ public class ShapeUtil {
             var v = new Vec3(x, y, z).add(nx * dx + ux * dy, ny * dx + uy * dy, nz * dx + uz * dy);
             var n = v.normalize();
             if (disc.directionList != null) {
-                var dlx = runtime.resolve(disc.directionList.get(0));
-                var dly = runtime.resolve(disc.directionList.get(1));
-                var dlz = runtime.resolve(disc.directionList.get(2));
+                var dlx = runtime.resolve(disc.directionList[0]);
+                var dly = runtime.resolve(disc.directionList[1]);
+                var dlz = runtime.resolve(disc.directionList[2]);
                 return ParticleEffectHolder.InitialParticleData.of(v, new Vec3(dlx, dly, dlz));
-            } else if (box.direction == EmitterDirection.INWARDS) {
+            } else if (disc.direction == EmitterDirection.INWARDS) {
                 n = n.reverse();
             }
 

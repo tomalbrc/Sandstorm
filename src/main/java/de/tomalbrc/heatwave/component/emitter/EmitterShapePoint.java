@@ -9,8 +9,8 @@ import java.util.List;
 
 public class EmitterShapePoint implements ParticleComponent<EmitterShapePoint> {
     @SerializedName("offset")
-    public List<MolangExpression> offset = ImmutableList.of(MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO); // default: [0, 0, 0]
+    public MolangExpression[] offset = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO};; // default: [0, 0, 0]
 
     @SerializedName("direction")
-    public List<MolangExpression> direction = ImmutableList.of(MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO); // specify direction
+    public MolangExpression[] direction = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO}; // specify direction
 }

@@ -9,9 +9,9 @@ import java.util.List;
 
 public class ParticleMotionParametric implements ParticleComponent<ParticleMotionParametric> {
     @SerializedName("relative_position")
-    public List<MolangExpression> relativePosition = ImmutableList.of(MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO);
+    public MolangExpression[] relativePosition = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO};;
     @SerializedName("direction")
-    public List<MolangExpression> direction = ImmutableList.of();
+    public MolangExpression[] direction = new MolangExpression[0];
     @SerializedName("rotation")
     public MolangExpression rotation = MolangExpression.ZERO;
 }

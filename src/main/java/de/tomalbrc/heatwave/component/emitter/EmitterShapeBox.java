@@ -14,10 +14,10 @@ import java.util.List;
 
 public class EmitterShapeBox implements ParticleComponent<EmitterShapeBox> {
     @SerializedName("offset")
-    public List<MolangExpression> offset = ImmutableList.of(MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO); // default: [0, 0, 0]
+    public MolangExpression[] offset = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO};; // default: [0, 0, 0]
 
     @SerializedName("half_dimensions")
-    public List<MolangExpression> halfDimensions = ImmutableList.of(MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO); // default: [0, 0, 0]
+    public MolangExpression[] halfDimensions = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO};; // default: [0, 0, 0]
 
     @SerializedName("surface_only")
     public boolean surfaceOnly = false; // default: false
@@ -35,11 +35,11 @@ public class EmitterShapeBox implements ParticleComponent<EmitterShapeBox> {
             EmitterShapeBox box = new EmitterShapeBox();
 
             if (jsonObject.has("offset")) {
-                box.offset = context.deserialize(jsonObject.get("offset"), new TypeToken<List<MolangExpression>>(){}.getType());
+                box.offset = context.deserialize(jsonObject.get("offset"), MolangExpression[].class);
             }
 
             if (jsonObject.has("half_dimensions")) {
-                box.halfDimensions = context.deserialize(jsonObject.get("half_dimensions"), new TypeToken<List<MolangExpression>>(){}.getType());
+                box.halfDimensions = context.deserialize(jsonObject.get("half_dimensions"), MolangExpression[].class);
             }
 
             if (jsonObject.has("surface_only")) {
