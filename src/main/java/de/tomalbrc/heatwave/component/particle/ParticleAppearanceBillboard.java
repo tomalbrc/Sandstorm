@@ -3,7 +3,7 @@ package de.tomalbrc.heatwave.component.particle;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
-import de.tomalbrc.heatwave.component.particle.config.DirectionConfig;
+import de.tomalbrc.heatwave.component.misc.DirectionConfig;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 
 import java.util.List;

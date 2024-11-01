@@ -3,7 +3,7 @@ package de.tomalbrc.heatwave.component.particle;
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
-import de.tomalbrc.heatwave.component.particle.config.ColorConfig;
+import de.tomalbrc.heatwave.component.misc.ColorConfig;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;

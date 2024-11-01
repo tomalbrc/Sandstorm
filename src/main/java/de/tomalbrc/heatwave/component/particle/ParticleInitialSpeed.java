@@ -1,16 +1,17 @@
 package de.tomalbrc.heatwave.component.particle;
 
 import com.google.common.collect.ImmutableList;
-import com.google.gson.*;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.component.ParticleComponent;
-import de.tomalbrc.heatwave.component.particle.config.ColorConfig;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.exception.MolangSyntaxException;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
 
 // Particle Initial State Components

@@ -1,17 +1,15 @@
 package de.tomalbrc.heatwave.polymer;
 
+import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.component.ParticleComponent;
 import de.tomalbrc.heatwave.component.ParticleComponentType;
 import de.tomalbrc.heatwave.component.ParticleComponents;
 import de.tomalbrc.heatwave.util.ParticleModels;
-import eu.pb4.polymer.virtualentity.api.elements.GenericEntityElement;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import eu.pb4.polymer.virtualentity.api.elements.VirtualElement;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
-import io.netty.util.concurrent.CompleteFuture;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.Brightness;
 import net.minecraft.util.Mth;
@@ -25,7 +23,6 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public class ParticleElement extends ItemDisplayElement {
     private static final AABB INITIAL_AABB = new AABB(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
@@ -119,7 +116,7 @@ public class ParticleElement extends ItemDisplayElement {
         rt.setVariable("particle_random_3", this.random_3);
         rt.setVariable("particle_random_4", this.random_4);
 
-        rt.setVariable("particle_age", this.age*(1.f/20.f));
+        rt.setVariable("particle_age", this.age * Heatwave.TIME_SCALE);
         rt.setVariable("particle_lifetime", runtime.resolve(this.maxLifetime));
     }
 
@@ -133,7 +130,7 @@ public class ParticleElement extends ItemDisplayElement {
     }
 
     private boolean alive(int age) throws MolangRuntimeException {
-        var scaledAge = (float)this.age*(1.0/20.0);
+        var scaledAge = (float)this.age * Heatwave.TIME_SCALE;
         return this.maxLifetime != null && scaledAge < this.parent.runtime().resolve(this.maxLifetime) || this.lifetimeExpression != null && age < this.parent.runtime().resolve(this.lifetimeExpression);
     }
 
@@ -174,11 +171,15 @@ public class ParticleElement extends ItemDisplayElement {
                 ya -= dragCoefficient * this.yd;
                 za -= dragCoefficient * this.zd;
 
-                this.xd += xa * (1.f/20.f);
-                this.yd += ya * (1.f/20.f);
-                this.zd += za * (1.f/20.f);
+                this.xd += xa * Heatwave.TIME_SCALE;
+                this.yd += ya * Heatwave.TIME_SCALE;
+                this.zd += za * Heatwave.TIME_SCALE;
 
-                this.move(this.xd * (1.f/20.f), this.yd * (1.f/20.f), this.zd * (1.f/20.f));
+                this.move(
+                        this.xd * Heatwave.TIME_SCALE,
+                        this.yd * Heatwave.TIME_SCALE,
+                        this.zd * Heatwave.TIME_SCALE
+                );
             }
 
             if (this.onGround) {

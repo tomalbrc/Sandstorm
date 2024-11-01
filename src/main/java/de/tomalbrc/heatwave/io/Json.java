@@ -7,7 +7,8 @@ import de.tomalbrc.heatwave.component.emitter.EmitterShapeBox;
 import de.tomalbrc.heatwave.component.emitter.EmitterShapeDisc;
 import de.tomalbrc.heatwave.component.emitter.EmitterShapeSphere;
 import de.tomalbrc.heatwave.component.particle.ParticleAppearanceTinting;
-import de.tomalbrc.heatwave.component.particle.ParticleInitialSpeed;
+import de.tomalbrc.heatwave.curve.BezierCurve;
+import de.tomalbrc.heatwave.curve.CatmullRomCurve;
 import de.tomalbrc.heatwave.curve.Curve;
 import de.tomalbrc.heatwave.curve.LinearCurve;
 import gg.moonflower.molangcompiler.api.MolangExpression;
@@ -57,11 +58,11 @@ public class Json {
                         case "linear":
                             return context.deserialize(json, LinearCurve.class);
                         case "catmull_rom":
-                            return context.deserialize(json, LinearCurve.class);
+                            return context.deserialize(json, CatmullRomCurve.class);
                         case "bezier":
-                            return context.deserialize(json, LinearCurve.class);
+                            return context.deserialize(json, BezierCurve.class);
                         case "bezier_chain":
-                            return context.deserialize(json, LinearCurve.class);
+                            throw new UnsupportedOperationException("not implemented");
                     }
                 }
             }

@@ -96,10 +96,10 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
         if (looping != null) {
             var max = lifetime = runtime.resolve(looping.activeTime);
             var sleepTime = runtime.resolve(looping.sleepTime);
-            if (this.age * (1.f/20.f) >= max) {
+            if (this.age * Heatwave.TIME_SCALE >= max) {
                 // todo: check loop delay
                 this.canEmit = false;
-                if ((this.age+sleepTime) * (1.f/20.f) >= max) {
+                if ((this.age+sleepTime) * Heatwave.TIME_SCALE >= max) {
                     this.age = 0;
                     this.canEmit = true;
                 }
@@ -107,14 +107,14 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
         }
         if (once != null) {
             var max = lifetime = runtime.resolve(once.activeTime);
-            if (this.age*(1.f/20.f) >= max) {
+            if (this.age * Heatwave.TIME_SCALE >= max) {
                 this.canEmit = false;
                 this.destroy();
             }
         }
 
         var rt = runtime.edit();
-        rt.setVariable("emitter_age", (float)this.age * (1.f/20.f));
+        rt.setVariable("emitter_age", (float)this.age * Heatwave.TIME_SCALE);
         rt.setVariable("emitter_lifetime", lifetime);
     }
 
@@ -134,9 +134,10 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
 
     @Override
     public void tick() {
-        if (this.getAttachment() == null) {
+        if (this.getAttachment() == null)
             return;
-        }
+        if (this.getAttachment().getWorld().getGameTime() % 2 == 0)
+            return;
 
         try {
             this.updatePosition();
@@ -170,7 +171,7 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
 
         if (steady != null) {
             var maxParticles = runtime.resolve(this.get(ParticleComponents.EMITTER_RATE_STEADY).maxParticles);
-            var spawnRate = runtime.resolve(this.get(ParticleComponents.EMITTER_RATE_STEADY).spawnRate) / 20;
+            var spawnRate = runtime.resolve(this.get(ParticleComponents.EMITTER_RATE_STEADY).spawnRate) * Heatwave.TIME_SCALE;
 
             if (this.canEmit()) {
                 int particlesToSpawn = (int)spawnRate;

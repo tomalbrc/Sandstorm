@@ -2,7 +2,7 @@ package de.tomalbrc.heatwave.component.particle;
 
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
-import de.tomalbrc.heatwave.component.particle.config.EventConfig;
+import de.tomalbrc.heatwave.component.misc.EventConfig;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 
 import java.util.List;

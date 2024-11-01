@@ -1,4 +1,4 @@
-package de.tomalbrc.heatwave.component.particle.config;
+package de.tomalbrc.heatwave.component.misc;
 
 import com.google.gson.annotations.SerializedName;
 import gg.moonflower.molangcompiler.api.MolangExpression;
