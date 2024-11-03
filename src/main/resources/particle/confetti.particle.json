@@ -23,7 +23,7 @@
                 "rotation_drag_coefficient": 1
             },
             "minecraft:particle_appearance_billboard": {
-                "size": [ 0.2, 0.2 ],
+                "size": [ "0.2 * (1.0-(variable.emitter_age/variable.emitter_lifetime))", "0.2 * (1.0-(v.emitter_age/v.emitter_lifetime))" ],
                 "facing_camera_mode": "rotate_xyz",
                 "uv": {
                     "texture_width": 112,

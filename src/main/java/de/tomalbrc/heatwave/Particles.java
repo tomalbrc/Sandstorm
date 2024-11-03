@@ -3,6 +3,7 @@ package de.tomalbrc.heatwave;
 import de.tomalbrc.heatwave.io.Json;
 import de.tomalbrc.heatwave.io.ParticleEffectFile;
 import de.tomalbrc.heatwave.util.ParticleModels;
+import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.io.IOException;
@@ -43,7 +44,13 @@ public class Particles {
         InputStream stream = Heatwave.class.getResourceAsStream(path);
         if (stream != null) {
             ParticleEffectFile effectFile = Json.GSON.fromJson(new InputStreamReader(stream), ParticleEffectFile.class);
-            ParticleModels.addFrom(effectFile);
+
+            try {
+                ParticleModels.addFrom(effectFile);
+            } catch (MolangRuntimeException e) {
+                throw new RuntimeException(e);
+            }
+
             ALL.add(effectFile);
             return effectFile;
         }

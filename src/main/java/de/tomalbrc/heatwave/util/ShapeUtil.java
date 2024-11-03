@@ -16,7 +16,7 @@ public class ShapeUtil {
             var dx = runtime.resolve(point.direction[0]);
             var dy = runtime.resolve(point.direction[1]);
             var dz = runtime.resolve(point.direction[2]);
-            return ParticleEffectHolder.InitialParticleData.of(new Vec3(x,y,z), new Vec3(dx, dy, dz));
+            return ParticleEffectHolder.InitialParticleData.of(new Vec3(x, y, z), new Vec3(dx, dy, dz));
         }
 
         var sphere = holder.get(ParticleComponents.EMITTER_SHAPE_SPHERE);
@@ -32,12 +32,7 @@ public class ShapeUtil {
             float dy = (float) Math.cos(phi);
             float dz = (float) (Math.sin(phi) * Math.sin(theta));
 
-            var v = new Vec3(x, y, z)
-                    .add(
-                            dx * (rad * (sphere.surfaceOnly ? 1 : (float) Math.random())),
-                            dy * (rad * (sphere.surfaceOnly ? 1 : (float) Math.random())),
-                            dz * (rad * (sphere.surfaceOnly ? 1 : (float) Math.random()))
-                    );
+            var v = new Vec3(x, y, z).add(dx * (rad * (sphere.surfaceOnly ? 1 : (float) Math.random())), dy * (rad * (sphere.surfaceOnly ? 1 : (float) Math.random())), dz * (rad * (sphere.surfaceOnly ? 1 : (float) Math.random())));
             var n = v.normalize();
 
             if (sphere.directionList != null) {
@@ -65,12 +60,36 @@ public class ShapeUtil {
             if (box.surfaceOnly) {
                 int face = (int) (Math.random() * 6);
                 switch (face) {
-                    case 0 -> { px = w; py = (float) (Math.random() * 2 - 1) * h; pz = (float) (Math.random() * 2 - 1) * b; }
-                    case 1 -> { px = -w; py = (float) (Math.random() * 2 - 1) * h; pz = (float) (Math.random() * 2 - 1) * b; }
-                    case 2 -> { px = (float) (Math.random() * 2 - 1) * w; py = h; pz = (float) (Math.random() * 2 - 1) * b; }
-                    case 3 -> { px = (float) (Math.random() * 2 - 1) * w; py = -h; pz = (float) (Math.random() * 2 - 1) * b; }
-                    case 4 -> { px = (float) (Math.random() * 2 - 1) * w; py = (float) (Math.random() * 2 - 1) * h; pz = b; }
-                    case 5 -> { px = (float) (Math.random() * 2 - 1) * w; py = (float) (Math.random() * 2 - 1) * h; pz = -b; }
+                    case 0 -> {
+                        px = w;
+                        py = (float) (Math.random() * 2 - 1) * h;
+                        pz = (float) (Math.random() * 2 - 1) * b;
+                    }
+                    case 1 -> {
+                        px = -w;
+                        py = (float) (Math.random() * 2 - 1) * h;
+                        pz = (float) (Math.random() * 2 - 1) * b;
+                    }
+                    case 2 -> {
+                        px = (float) (Math.random() * 2 - 1) * w;
+                        py = h;
+                        pz = (float) (Math.random() * 2 - 1) * b;
+                    }
+                    case 3 -> {
+                        px = (float) (Math.random() * 2 - 1) * w;
+                        py = -h;
+                        pz = (float) (Math.random() * 2 - 1) * b;
+                    }
+                    case 4 -> {
+                        px = (float) (Math.random() * 2 - 1) * w;
+                        py = (float) (Math.random() * 2 - 1) * h;
+                        pz = b;
+                    }
+                    case 5 -> {
+                        px = (float) (Math.random() * 2 - 1) * w;
+                        py = (float) (Math.random() * 2 - 1) * h;
+                        pz = -b;
+                    }
                 }
             } else {
                 px = (float) (Math.random() * 2 - 1) * w;
@@ -125,6 +144,17 @@ public class ShapeUtil {
             }
 
             return ParticleEffectHolder.InitialParticleData.of(v, n);
+        }
+
+        var custom = holder.get(ParticleComponents.EMITTER_SHAPE_CUSTOM);
+        if (custom != null) {
+            var dx = runtime.resolve(custom.direction[0]);
+            var dy = runtime.resolve(custom.direction[1]);
+            var dz = runtime.resolve(custom.direction[2]);
+            var x = runtime.resolve(custom.offset[0]);
+            var y = runtime.resolve(custom.offset[1]);
+            var z = runtime.resolve(custom.offset[2]);
+            return ParticleEffectHolder.InitialParticleData.of(new Vec3(x, y, z), new Vec3(dx, dy, dz));
         }
 
         return ParticleEffectHolder.InitialParticleData.ZERO;

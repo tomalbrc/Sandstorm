@@ -78,9 +78,8 @@ public class ParticleElement extends ItemDisplayElement {
             this.setBillboardMode(Display.BillboardConstraints.CENTER);
 
         this.setSendPositionUpdates(true);
-        this.setModelTransformation(ItemDisplayContext.HEAD);
         this.setInvisible(true);
-        this.setDisplaySize(0.2f, 0.2f);
+        this.setDisplaySize(0.5f, 0.5f);
         this.setInterpolationDuration(2);
         this.setTeleportDuration(1);
 
@@ -243,7 +242,7 @@ public class ParticleElement extends ItemDisplayElement {
         if (this.parent.getAttachment() == null || this.parent.getAttachment().getWorld() == null)
             return;
 
-        Vec3 correctedSpeedFactor = Vec3.ZERO;
+        Vec3 correctedSpeedFactor = new Vec3(nx, ny, nz);
         boolean collided = false;
         if (this.physics) {
             if ((nx != 0.0 || ny != 0.0 || nz != 0.0) && nx * nx + ny * ny + nz * nz < MAX_COLLISION_VELOCITY) {
@@ -275,7 +274,7 @@ public class ParticleElement extends ItemDisplayElement {
                     this.speed.y = Mth.sign(this.speed.y) * Mth.clamp(Math.abs(this.speed.y) - (motionCollision.collisionDrag * Heatwave.TIME_SCALE), 0, Float.POSITIVE_INFINITY);
                     this.speed.z = Mth.sign(this.speed.z) * Mth.clamp(Math.abs(this.speed.z) - (motionCollision.collisionDrag * Heatwave.TIME_SCALE), 0, Float.POSITIVE_INFINITY);
                }
-            }
+            } else correctedSpeedFactor = Vec3.ZERO;
         }
 
         position.add((float) (correctedSpeedFactor.x), (float) (correctedSpeedFactor.y), (float) (correctedSpeedFactor.z));
@@ -290,8 +289,8 @@ public class ParticleElement extends ItemDisplayElement {
             var size = billboard.size;
             var x = this.parent.runtime().resolve(size.get(0));
             var y = this.parent.runtime().resolve(size.get(1));
-            var scale = new Vector3f(Float.isNaN(x) ? 0 : x * 3.f, Float.isNaN(y) ? 0 : y * 3.f, 1);
-            if (!this.getScale().equals(scale, 0.001f)) {
+            var scale = new Vector3f(Float.isNaN(x) ? 0 : x * 2.f, Float.isNaN(y) ? 0 : y * 2.f, 1);
+            if (!this.getScale().equals(scale, 0.0001f)) {
                 this.setScale(scale);
             }
         }

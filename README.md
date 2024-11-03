@@ -25,7 +25,7 @@ WIP™
 - 🟢 `minecraft:emitter_rate_instant`
 - 🟢 `minecraft:emitter_rate_steady`
 - 🟢 `minecraft:emitter_rate_manual`
-- 🔴 `minecraft:emitter_shape_custom`
+- 🟢 `minecraft:emitter_shape_custom`
 - 🔴 `minecraft:emitter_shape_entity_aabb`
 - 🔴 `minecraft:emitter_local_space`
 - 🔴 `minecraft:emitter_lifetime_events`

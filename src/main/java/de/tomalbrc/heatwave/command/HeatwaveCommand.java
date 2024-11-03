@@ -9,6 +9,7 @@ import de.tomalbrc.heatwave.io.ParticleEffectFile;
 import de.tomalbrc.heatwave.polymer.ParticleEffectHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -19,6 +20,8 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.commands.SummonCommand;
 
+import java.util.List;
+
 import static net.minecraft.commands.Commands.argument;
 import static net.minecraft.commands.Commands.literal;
 
@@ -27,20 +30,25 @@ public class HeatwaveCommand {
         var heatwaveNode = Commands
                 .literal("heatwave").requires(Permissions.require("heatwave.command", 1)).executes(x -> {
                     x.getSource().sendSystemMessage(Component.literal("Heatwave 1.0"));
-                    return 0;
+                    return 1;
                 });
 
         heatwaveNode.then(argument("effect", ResourceLocationArgument.id()).suggests(new ParticleSuggestionProvider()).executes(HeatwaveCommand::execute));
         heatwaveNode.then(argument("effect", ResourceLocationArgument.id()).suggests(new ParticleSuggestionProvider()).then(argument("position", Vec3Argument.vec3()).executes(HeatwaveCommand::executeAt)));
         heatwaveNode.then(literal("clear").executes(HeatwaveCommand::clear));
 
-        dispatcher.register(heatwaveNode.executes(HeatwaveCommand::execute));
+        dispatcher.register(heatwaveNode);
     }
 
     private static int clear(CommandContext<CommandSourceStack> commandSourceStackCommandContext) {
+        List<ParticleEffectHolder> toRemove = new ObjectArrayList<>();
         for (ParticleEffectHolder holder : Heatwave.HOLDER) {
+            toRemove.add(holder);
+        }
+        for (ParticleEffectHolder holder : toRemove) {
             holder.destroy();
         }
+
         return Command.SINGLE_SUCCESS;
     }
 
@@ -74,7 +82,6 @@ public class HeatwaveCommand {
 
     private static int executeAt(CommandContext<CommandSourceStack> context) {
         ParticleEffectFile file = effectFile(context);
-
         if (file != null && context.getSource() != null) {
             ParticleEffectHolder holder;
             try {
@@ -82,9 +89,9 @@ public class HeatwaveCommand {
             } catch (MolangRuntimeException e) {
                 throw new RuntimeException(e);
             }
-            ChunkAttachment.ofTicking(holder, context.getSource().getLevel(), Vec3Argument.getVec3(context,""));
+            ChunkAttachment.ofTicking(holder, context.getSource().getLevel(), Vec3Argument.getVec3(context,"position"));
         }
 
-        return Command.SINGLE_SUCCESS;
+        return 0;
     }
 }
