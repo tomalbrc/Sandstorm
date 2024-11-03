@@ -284,6 +284,11 @@ public class ParticleElement extends ItemDisplayElement {
     private void updateElementTick() throws MolangRuntimeException {
         this.setLeftRotation(new Quaternionf().rotateZ(this.roll * Mth.DEG_TO_RAD));
 
+        if (this.getItem() != this.item) {
+            this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(0xFF_FF_FF, false));
+            this.setItem(this.item);
+        }
+
         var billboard = this.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD);
         if (billboard != null && !billboard.size.isEmpty()) {
             var size = billboard.size;
@@ -295,13 +300,25 @@ public class ParticleElement extends ItemDisplayElement {
             }
         }
 
-        if (billboard != null && billboard.uv.flipbook != null && billboard.uv.flipbook.stretch_to_lifetime) {
-            var nLifetime = scaledAge() / this.maxLifetime;
-            var newStack = ParticleModels.modelData(this.parent.getEffectFile(), nLifetime, this.parent.runtime()).asStack();
-            if (this.item.get(DataComponents.CUSTOM_MODEL_DATA) != newStack.get(DataComponents.CUSTOM_MODEL_DATA)) {
-                newStack.set(DataComponents.DYED_COLOR, this.item.get(DataComponents.DYED_COLOR));
-                this.item = newStack;
-                this.setItem(item);
+        if (billboard != null && billboard.uv.flipbook != null) {
+            if (billboard.uv.flipbook.stretch_to_lifetime) {
+                float nLifetime = scaledAge() / this.maxLifetime;
+                var newStack = ParticleModels.modelData(this.parent.getEffectFile(), nLifetime, this.parent.runtime()).asStack();
+                if (this.item.get(DataComponents.CUSTOM_MODEL_DATA) != newStack.get(DataComponents.CUSTOM_MODEL_DATA)) {
+                    newStack.set(DataComponents.DYED_COLOR, this.item.get(DataComponents.DYED_COLOR));
+                    this.item = newStack;
+                    this.setItem(this.item);
+                }
+            } else {
+                var frame = (int)(scaledAge() / (1.f/billboard.uv.flipbook.frames_per_second));
+                var max = (int)this.parent.runtime().resolve(billboard.uv.flipbook.max_frame);
+                int index = billboard.uv.flipbook.loop ? frame % max : Math.min(frame, max - 1);
+                var newStack = ParticleModels.modelData(this.parent.getEffectFile(), index).asStack();
+                if (this.item.get(DataComponents.CUSTOM_MODEL_DATA) != newStack.get(DataComponents.CUSTOM_MODEL_DATA)) {
+                    newStack.set(DataComponents.DYED_COLOR, this.item.get(DataComponents.DYED_COLOR));
+                    this.item = newStack;
+                    this.setItem(this.item);
+                }
             }
         }
 
@@ -312,11 +329,8 @@ public class ParticleElement extends ItemDisplayElement {
             }
             else {
                 var color = this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_TINTING).color.color(this.parent.runtime());
-                this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(color, false));
+                this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(color, true));
             }
-            this.getDataTracker().set(DisplayTrackedData.Item.ITEM, this.item, false);
-        } else if (this.getItem() != this.item) {
-            this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(0xFF_FF_FF, false));
             this.setItem(this.item);
         }
 

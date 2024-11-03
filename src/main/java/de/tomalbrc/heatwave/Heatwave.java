@@ -24,6 +24,8 @@ public class Heatwave implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        PolymerResourcePackUtils.markAsRequired();
+
         ParticleComponents.init();
         Particles.init();
 

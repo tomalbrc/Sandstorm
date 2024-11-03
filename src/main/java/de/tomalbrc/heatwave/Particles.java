@@ -14,27 +14,20 @@ import java.util.List;
 public class Particles {
     public static final List<ParticleEffectFile> ALL = new ObjectArrayList<>();
 
-    public static final ParticleEffectFile RAINBOW;
-    public static final ParticleEffectFile BALL;
-    public static final ParticleEffectFile SNOW;
-    public static final ParticleEffectFile LOADING;
-    public static final ParticleEffectFile TRAIL;
-    public static final ParticleEffectFile SMOKE;
-    public static final ParticleEffectFile MAGIC;
-
     static {
         try {
-            RAINBOW = loadEffect("/particle/rainbow.particle.json");
-            BALL = loadEffect("/particle/ball.json");
-            SNOW = loadEffect("/particle/snow.json");
-            LOADING = loadEffect("/particle/loading.json");
-            TRAIL = loadEffect("/particle/trail.json");
-            SMOKE = loadEffect("/particle/smoke.json");
-            MAGIC = loadEffect("/particle/magic.json");
+            loadEffect("/particle/rainbow.json");
+            loadEffect("/particle/bounce.json");
+            loadEffect("/particle/snow.json");
+            loadEffect("/particle/loading.json");
+            loadEffect("/particle/trail.json");
+            loadEffect("/particle/smoke.json");
+            loadEffect("/particle/magic.json");
 
-            //loadEffect("/particle/rift.json");
-            loadEffect("/particle/confetti.particle.json");
-            loadEffect("/particle/wbflame");
+            loadEffect("/particle/rift.json");
+            loadEffect("/particle/confetti.json");
+            loadEffect("/particle/flame.json");
+            loadEffect("/particle/combocurve.json");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

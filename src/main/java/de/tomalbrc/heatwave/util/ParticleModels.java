@@ -42,6 +42,10 @@ public class ParticleModels {
         return map.get((int) (Math.random() * (map.size()-1)));
     }
 
+    public static PolymerModelData modelData(ParticleEffectFile effectFile, int index) {
+        return POLYMER_MODEL_DATA.get(effectFile).get(index);
+    }
+
     public static void addToResourcePack(ResourcePackBuilder builder) {
         for (Map.Entry<String, byte[]> entry : DATA.entrySet()) {
             builder.addData("assets/heatwave/" + entry.getKey(), entry.getValue());
