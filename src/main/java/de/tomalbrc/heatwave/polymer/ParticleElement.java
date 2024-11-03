@@ -4,6 +4,9 @@ import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.component.ParticleComponent;
 import de.tomalbrc.heatwave.component.ParticleComponentType;
 import de.tomalbrc.heatwave.component.ParticleComponents;
+import de.tomalbrc.heatwave.component.particle.ParticleMotionCollision;
+import de.tomalbrc.heatwave.component.particle.ParticleMotionDynamic;
+import de.tomalbrc.heatwave.component.particle.ParticleMotionParametric;
 import de.tomalbrc.heatwave.util.ParticleModels;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
@@ -28,29 +31,20 @@ import org.joml.Vector3f;
 import java.util.List;
 
 public class ParticleElement extends ItemDisplayElement {
-    private static final AABB INITIAL_AABB = new AABB(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     private static final double MAX_COLLISION_VELOCITY = Mth.square(100.0);
 
-    private MolangExpression maxLifetime;
+    private float maxLifetime;
     private MolangExpression lifetimeExpression;
-    private AABB bb = INITIAL_AABB;
 
-    protected boolean onGround;
-    private boolean stoppedByCollision;
     protected boolean removed;
     protected int age;
     protected float roll;
     protected float rolld;
 
-    protected double xo;
-    protected double yo;
-    protected double zo;
-    protected double x;
-    protected double y;
-    protected double z;
-    protected float xd;
-    protected float yd;
-    protected float zd;
+    protected Vector3f previousPosition = new Vector3f();
+    protected Vector3f position = new Vector3f();
+    protected Vector3f acceleration = new Vector3f();
+    protected Vector3f speed = new Vector3f();
 
     private final boolean physics;
     private final boolean dynamicMotion;
@@ -64,7 +58,7 @@ public class ParticleElement extends ItemDisplayElement {
     protected final float random_4 = (float) Math.random();
 
     private final ParticleEffectHolder parent;
-    private final ItemStack item;
+    private ItemStack item;
 
     public ParticleElement(ParticleEffectHolder particleEffectHolder) throws MolangRuntimeException {
         this.parent = particleEffectHolder;
@@ -72,18 +66,13 @@ public class ParticleElement extends ItemDisplayElement {
         this.dynamicMotion = parent.has(ParticleComponents.PARTICLE_MOTION_DYNAMIC);
         this.parametricMotion = parent.has(ParticleComponents.PARTICLE_MOTION_PARAMETRIC);
 
-        if (particleEffectHolder.has(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION)) {
-            this.maxLifetime = this.get(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION).maxLifetime;
-            this.lifetimeExpression = particleEffectHolder.get(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION).expirationExpression;
-        }
-
         if (this.physics) {
             this.bbRadius = this.parent.get(ParticleComponents.PARTICLE_MOTION_COLLISION).collisionRadius;
         }
 
         this.updateRuntimePerParticle(this.parent.runtime());
 
-        this.item = ParticleModels.modelData(particleEffectHolder.getEffectFile(), 0).asStack();
+        this.item = ParticleModels.modelData(particleEffectHolder.getEffectFile(), 0, this.parent.runtime()).asStack();
 
         if (this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD))
             this.setBillboardMode(Display.BillboardConstraints.CENTER);
@@ -97,16 +86,24 @@ public class ParticleElement extends ItemDisplayElement {
 
         if (!this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_LIGHTING))
             this.setBrightness(Brightness.FULL_BRIGHT);
+
+        if (particleEffectHolder.has(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION)) {
+            this.maxLifetime = this.parent.runtime().resolve(this.get(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION).maxLifetime);
+            this.lifetimeExpression = particleEffectHolder.get(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION).expirationExpression;
+        }
+
+        this.updateElementTick();
     }
 
-    public void setDelta(float x, float y, float z) {
-        this.xd = x;
-        this.yd = y;
-        this.zd = z;
+    public void setSpeed(float x, float y, float z) {
+        this.speed.x = x;
+        this.speed.y = y;
+        this.speed.z = z;
     }
 
     public void setRoll(float roll) {
         this.roll = roll;
+        this.setLeftRotation(new Quaternionf().rotateZ(this.roll * Mth.DEG_TO_RAD));
     }
 
     public void setRollAccel(float accel) {
@@ -121,26 +118,26 @@ public class ParticleElement extends ItemDisplayElement {
         rt.setVariable("particle_random_4", this.random_4);
 
         rt.setVariable("particle_age", this.age * Heatwave.TIME_SCALE);
-        rt.setVariable("particle_lifetime", runtime.resolve(this.maxLifetime));
+        rt.setVariable("particle_lifetime", this.maxLifetime);
     }
 
     @Override
     public Vec3 getCurrentPos() {
-        return new Vec3(x,y+0.05f,z);
+        return new Vec3(position.x, position.y+0.05f, position.z);
     }
 
     private <T extends ParticleComponent<?>> T get(ParticleComponentType<T> type) {
         return this.parent.get(type);
     }
 
-    private boolean alive(int age) throws MolangRuntimeException {
+    private boolean alive() throws MolangRuntimeException {
         if (this.parent.getAttachment() == null)
             return false;
 
         var inBlocks = get(ParticleComponents.PARTICLE_EXPIRE_IF_IN_BLOCKS);
         var notInBlocks = get(ParticleComponents.PARTICLE_EXPIRE_IF_NOT_IN_BLOCKS);
 
-        BlockState bs = inBlocks != null || notInBlocks != null ? this.parent.getAttachment().getWorld().getBlockState(BlockPos.containing(x,y,z)) : null;
+        BlockState bs = inBlocks != null || notInBlocks != null ? this.parent.getAttachment().getWorld().getBlockState(BlockPos.containing(this.position.x, this.position.y, this.position.z)) : null;
 
         if (inBlocks != null) {
             for (int i = 0; i < inBlocks.blocks.length; i++) {
@@ -148,80 +145,80 @@ public class ParticleElement extends ItemDisplayElement {
                     return false;
             }
         }
-
         if (notInBlocks != null) {
+            boolean die = true;
             for (int i = 0; i < notInBlocks.blocks.length; i++) {
-                if (notInBlocks.blocks[i] == bs.getBlock())
-                    return true;
+                if (notInBlocks.blocks[i] == bs.getBlock()) {
+                    die = false;
+                    break;
+                }
             }
+            if (die)
+                return true;
         }
 
+        if (this.parent.runtime().resolve(this.lifetimeExpression) == 1)
+            return false;
 
+        var scaledAge = (float)this.age++ * Heatwave.TIME_SCALE;
+        return scaledAge < maxLifetime;
+    }
 
-        var scaledAge = (float)this.age * Heatwave.TIME_SCALE;
-        return this.maxLifetime != null && scaledAge < this.parent.runtime().resolve(this.maxLifetime) || this.lifetimeExpression != null && age < this.parent.runtime().resolve(this.lifetimeExpression);
+    private float scaledAge() {
+        return (float)this.age * Heatwave.TIME_SCALE;
     }
 
     @Override
     public void tick() {
         try {
-            this.xo = this.x;
-            this.yo = this.y;
-            this.zo = this.z;
-            if (!alive(this.age++)) {
+            this.previousPosition.set(this.position);
+
+            if (!alive()) {
                 this.remove();
                 return;
             }
 
             if (this.parametricMotion) {
-                var para = this.parent.get(ParticleComponents.PARTICLE_MOTION_PARAMETRIC);
-                this.x = this.parent.runtime().resolve(para.relativePosition[0]);
-                this.y = this.parent.runtime().resolve(para.relativePosition[1]);
-                this.z = this.parent.runtime().resolve(para.relativePosition[2]);
+                ParticleMotionParametric para = this.parent.get(ParticleComponents.PARTICLE_MOTION_PARAMETRIC);
+                this.position.x = this.parent.runtime().resolve(para.relativePosition[0]);
+                this.position.y = this.parent.runtime().resolve(para.relativePosition[1]);
+                this.position.z = this.parent.runtime().resolve(para.relativePosition[2]);
 
                 if (para.direction.length > 0) {
-                    this.xd = this.parent.runtime().resolve(para.direction[0]);
-                    this.yd = this.parent.runtime().resolve(para.direction[1]);
-                    this.zd = this.parent.runtime().resolve(para.direction[2]);
+                    this.speed.x = this.parent.runtime().resolve(para.direction[0]);
+                    this.speed.y = this.parent.runtime().resolve(para.direction[1]);
+                    this.speed.z = this.parent.runtime().resolve(para.direction[2]);
                 }
 
                 this.roll = this.parent.runtime().resolve(para.rotation);
             }
 
             if (this.dynamicMotion) {
-                var dynMotion = this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC);
-                var accel = dynMotion.linearAcceleration;
-                var xa = this.parent.runtime().resolve(accel[0]);
-                var ya = this.parent.runtime().resolve(accel[1]);
-                var za = this.parent.runtime().resolve(accel[2]);
+                ParticleMotionDynamic dynMotion = this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC);
+                MolangExpression[] accel = dynMotion.linearAcceleration;
+                this.acceleration.x = this.parent.runtime().resolve(accel[0]);
+                this.acceleration.y = this.parent.runtime().resolve(accel[1]);
+                this.acceleration.z = this.parent.runtime().resolve(accel[2]);
 
-                float dragCoefficient = this.parent.runtime().resolve(this.parent.get(ParticleComponents.PARTICLE_MOTION_DYNAMIC).linearDragCoefficient);
-                xa -= dragCoefficient * this.xd;
-                ya -= dragCoefficient * this.yd;
-                za -= dragCoefficient * this.zd;
+                float dragCoefficient = this.parent.runtime().resolve(dynMotion.linearDragCoefficient);
 
-                this.xd += xa * Heatwave.TIME_SCALE;
-                this.yd += ya * Heatwave.TIME_SCALE;
-                this.zd += za * Heatwave.TIME_SCALE;
+                this.acceleration.add(this.speed.x * -dragCoefficient, this.speed.y * -dragCoefficient, this.speed.z * -dragCoefficient);
+                this.speed.add(this.acceleration.x * Heatwave.TIME_SCALE, this.acceleration.y * Heatwave.TIME_SCALE, this.acceleration.z * Heatwave.TIME_SCALE);
 
                 this.move(
-                        this.xd * Heatwave.TIME_SCALE,
-                        this.yd * Heatwave.TIME_SCALE,
-                        this.zd * Heatwave.TIME_SCALE
+                        this.speed.x*Heatwave.TIME_SCALE,
+                        this.speed.y*Heatwave.TIME_SCALE,
+                        this.speed.z*Heatwave.TIME_SCALE
                 );
 
-                var ra = this.parent.runtime().resolve(dynMotion.rotationAcceleration);
-                var rdc = this.parent.runtime().resolve(dynMotion.rotationDragCoefficient);
-                ra -= rdc * this.rolld;
-                this.rolld += ra * Heatwave.TIME_SCALE;
+                float rotationAccel = this.parent.runtime().resolve(dynMotion.rotationAcceleration);
+                float rotationDrag = this.parent.runtime().resolve(dynMotion.rotationDragCoefficient);
+                rotationAccel -= rotationDrag * this.rolld;
+                this.rolld += rotationAccel * Heatwave.TIME_SCALE;
 
-                if (this.rolld != 0)
+                if (this.rolld != 0) {
                     this.roll += this.rolld * Heatwave.TIME_SCALE;
-            }
-
-            if (this.onGround) {
-                this.xd *= 0.7f;
-                this.zd *= 0.7f;
+                }
             }
 
             this.updateElementTick();
@@ -236,82 +233,76 @@ public class ParticleElement extends ItemDisplayElement {
         this.sendTrackerUpdates();
     }
 
-    public void setPos(double d, double d2, double d3) {
-        this.x = d;
-        this.y = d2;
-        this.z = d3;
-        float f = this.bbRadius;
-        this.setBoundingBox(new AABB(d - (double)f, d2, d3 - (double)f, d + (double)f, d2 + (double)f, d3 + (double)f));
+    public void setPos(float d, float d2, float d3) {
+        this.position.x = d;
+        this.position.y = d2;
+        this.position.z = d3;
     }
 
     public void move(double nx, double ny, double nz) {
         if (this.parent.getAttachment() == null || this.parent.getAttachment().getWorld() == null)
             return;
 
-        if (this.stoppedByCollision)
-            return;
-
-        double tmpX = nx;
-        double tmpY = ny;
-        double tmpZ = nz;
-
+        Vec3 correctedSpeedFactor = Vec3.ZERO;
+        boolean collided = false;
         if (this.physics) {
             if ((nx != 0.0 || ny != 0.0 || nz != 0.0) && nx * nx + ny * ny + nz * nz < MAX_COLLISION_VELOCITY) {
-                Vec3 vec3 = Entity.collideBoundingBox(null, new Vec3(nx, ny, nz), this.getBoundingBox(), this.parent.getAttachment().getWorld(), List.of());
-                nx = vec3.x;
-                ny = vec3.y;
-                nz = vec3.z;
-                if (Math.abs(ny) < (double) 1.0E-5f) { // coll check
-                    var coll = this.get(ParticleComponents.PARTICLE_MOTION_COLLISION);
-                    if (coll.expireOnContact) {
+                var bb = this.getBoundingBox();
+                correctedSpeedFactor = Entity.collideBoundingBox(null, new Vec3(nx, ny, nz), bb, this.parent.getAttachment().getWorld(), List.of());
+                boolean xc = Math.abs(correctedSpeedFactor.x) < 1.0E-3 && correctedSpeedFactor.x != nx;
+                boolean yc = Math.abs(correctedSpeedFactor.y) < 1.0E-3 && correctedSpeedFactor.y != ny;
+                boolean zc = Math.abs(correctedSpeedFactor.z) < 1.0E-3 && correctedSpeedFactor.z != nz;
+                collided = xc || yc || zc;
+                if (collided) { // coll check
+                    ParticleMotionCollision motionCollision = this.get(ParticleComponents.PARTICLE_MOTION_COLLISION);
+                    float bounciness = motionCollision.coefficientOfRestitution;
+
+                    if (motionCollision.expireOnContact) {
                         this.remove();
                     }
-                    else {
-                        float bounciness = this.get(ParticleComponents.PARTICLE_MOTION_COLLISION).coefficientOfRestitution;
-                        this.yd = bounciness * -this.yd;
-                    }
-                }
+
+                    if (xc)
+                        this.speed.x *= -1;
+                    if (yc)
+                        this.speed.y *= -1;
+                    if (zc)
+                        this.speed.z *= -1;
+
+                    //this.position.y += (float) correctedSpeedFactor.y;
+
+                    this.speed.y *= bounciness;
+                    this.speed.x = Mth.sign(this.speed.x) * Mth.clamp(Math.abs(this.speed.x) - (motionCollision.collisionDrag * Heatwave.TIME_SCALE), 0, Float.POSITIVE_INFINITY);
+                    this.speed.y = Mth.sign(this.speed.y) * Mth.clamp(Math.abs(this.speed.y) - (motionCollision.collisionDrag * Heatwave.TIME_SCALE), 0, Float.POSITIVE_INFINITY);
+                    this.speed.z = Mth.sign(this.speed.z) * Mth.clamp(Math.abs(this.speed.z) - (motionCollision.collisionDrag * Heatwave.TIME_SCALE), 0, Float.POSITIVE_INFINITY);
+               }
             }
-
         }
 
-        if (nx != 0.0 || ny != 0.0 || nz != 0.0) {
-            this.setBoundingBox(this.getBoundingBox().move(nx, ny, nz));
-            this.setLocationFromBoundingbox();
-        }
-        if (Math.abs(tmpY) >= (double) 1.0E-5f && Math.abs(ny) < (double) 1.0E-5f && this.yd < (double) 1.0E-5f) {
-            this.stoppedByCollision = true;
-        }
-
-        this.onGround = tmpY != ny && tmpY < 0.0;
-
-        if (tmpX != nx) {
-            this.xd = 0.f;
-        }
-        if (tmpZ != nz) {
-            this.zd = 0.f;
-        }
+        position.add((float) (correctedSpeedFactor.x), (float) (correctedSpeedFactor.y), (float) (correctedSpeedFactor.z));
     }
 
-    protected void setLocationFromBoundingbox() {
-        AABB aABB = this.getBoundingBox();
-        this.x = (aABB.minX + aABB.maxX) / 2.0;
-        this.y = aABB.minY;
-        this.z = (aABB.minZ + aABB.maxZ) / 2.0;
-    }
 
     private void updateElementTick() throws MolangRuntimeException {
         this.setLeftRotation(new Quaternionf().rotateZ(this.roll * Mth.DEG_TO_RAD));
 
-        if (this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD) && !this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD).size.isEmpty()) {
-            var size = this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD).size;
+        var billboard = this.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD);
+        if (billboard != null && !billboard.size.isEmpty()) {
+            var size = billboard.size;
             var x = this.parent.runtime().resolve(size.get(0));
             var y = this.parent.runtime().resolve(size.get(1));
-            var scale = new Vector3f(Float.isNaN(x) ? 0 : x*3.f, Float.isNaN(y) ? 0 : y*3.f, 1);
+            var scale = new Vector3f(Float.isNaN(x) ? 0 : x * 3.f, Float.isNaN(y) ? 0 : y * 3.f, 1);
             if (!this.getScale().equals(scale, 0.001f)) {
                 this.setScale(scale);
-                this.sendTrackerUpdates();
-                this.setScale(scale);
+            }
+        }
+
+        if (billboard != null && billboard.uv.flipbook != null && billboard.uv.flipbook.stretch_to_lifetime) {
+            var nLifetime = scaledAge() / this.maxLifetime;
+            var newStack = ParticleModels.modelData(this.parent.getEffectFile(), nLifetime, this.parent.runtime()).asStack();
+            if (this.item.get(DataComponents.CUSTOM_MODEL_DATA) != newStack.get(DataComponents.CUSTOM_MODEL_DATA)) {
+                newStack.set(DataComponents.DYED_COLOR, this.item.get(DataComponents.DYED_COLOR));
+                this.item = newStack;
+                this.setItem(item);
             }
         }
 
@@ -342,10 +333,19 @@ public class ParticleElement extends ItemDisplayElement {
     }
 
     public AABB getBoundingBox() {
-        return this.bb;
-    }
+        var nx = previousPosition.x - bbRadius;
+        var px = previousPosition.x + bbRadius;
+        double minX = Math.min(nx, px);
+        double maxX = Math.max(nx, px);
 
-    public void setBoundingBox(AABB aABB) {
-        this.bb = aABB;
+        double minY = previousPosition.y;
+        double maxY = previousPosition.y + bbRadius;
+
+        var nz = previousPosition.z - bbRadius;
+        var pz = previousPosition.z + bbRadius;
+        double minZ = Math.min(nz, pz);
+        double maxZ = Math.max(nz, pz);
+
+        return new AABB(minX, minY, minZ, maxX, maxY, maxZ);
     }
 }

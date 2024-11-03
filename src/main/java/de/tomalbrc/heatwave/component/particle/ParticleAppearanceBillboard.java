@@ -20,7 +20,6 @@ public class ParticleAppearanceBillboard implements ParticleComponent<ParticleAp
     public DirectionConfig direction = new DirectionConfig();
 
     public UvConfig uv;
-    public Flipbook flipbook;
 
     public static class UvConfig {
         @SerializedName("texture_width")
@@ -32,6 +31,8 @@ public class ParticleAppearanceBillboard implements ParticleComponent<ParticleAp
 
         @SerializedName("uv_size")
         public MolangExpression[] uvSize;
+
+        public Flipbook flipbook;
     }
 
     public static class Flipbook {

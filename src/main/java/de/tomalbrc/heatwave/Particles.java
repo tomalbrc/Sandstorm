@@ -33,6 +33,7 @@ public class Particles {
 
             //loadEffect("/particle/rift.json");
             loadEffect("/particle/confetti.particle.json");
+            loadEffect("/particle/wbflame");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

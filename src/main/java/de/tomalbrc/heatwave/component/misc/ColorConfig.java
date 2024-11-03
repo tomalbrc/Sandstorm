@@ -1,20 +1,22 @@
 package de.tomalbrc.heatwave.component.misc;
 
+import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.util.ColorUtil;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.util.Mth;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
 public class ColorConfig {
     @SerializedName("gradient")
-    public Map<String, String> gradient;
+    public List<GradientStop> gradient;
     @SerializedName("interpolant")
     public MolangExpression interpolant;
 
@@ -23,22 +25,11 @@ public class ColorConfig {
         return getInterpolatedColor(this.gradient, Mth.clamp(interpolantValue, 0.f,1.f));
     }
 
-    record GradientStop(float position, int color) {}
+    public record GradientStop(float position, int color) {}
 
-    public int getInterpolatedColor(Map<String, String> gradient, float variableRainbow) {
-        List<GradientStop> gradientStops = new ObjectArrayList<>();
-
-        for (Map.Entry<String, String> entry : gradient.entrySet()) {
-            float position = Float.parseFloat(entry.getKey());
-            int color = ColorUtil.parseHexColor(entry.getValue());
-            gradientStops.add(new GradientStop(position, color));
-        }
-
-        gradientStops.sort(Comparator.comparing(stop -> stop.position));
-
+    private int getInterpolatedColor(List<GradientStop> gradientStops, float variableRainbow) {
         GradientStop lowerStop = null;
         GradientStop upperStop = null;
-
         for (int i = 0; i < gradientStops.size() - 1; i++) {
             lowerStop = gradientStops.get(i);
             upperStop = gradientStops.get(i + 1);
@@ -46,12 +37,11 @@ public class ColorConfig {
                 break;
             }
         }
-
         assert lowerStop != null && upperStop != null;
+        return interpolateColor(lowerStop.color, upperStop.color, variableRainbow);
+    }
 
-        int lowerColor = lowerStop.color;
-        int upperColor = upperStop.color;
-
+    private int interpolateColor(int lowerColor, int upperColor, float t) {
         int lowerAlpha = (lowerColor >> 24) & 0xFF;
         int lowerRed   = (lowerColor >> 16) & 0xFF;
         int lowerGreen = (lowerColor >> 8) & 0xFF;
@@ -62,11 +52,41 @@ public class ColorConfig {
         int upperGreen = (upperColor >> 8) & 0xFF;
         int upperBlue  = upperColor & 0xFF;
 
-        int interpAlpha = (int) Mth.lerp(variableRainbow, lowerAlpha, upperAlpha);
-        int interpRed   = (int) Mth.lerp(variableRainbow, lowerRed, upperRed);
-        int interpGreen = (int) Mth.lerp(variableRainbow, lowerGreen, upperGreen);
-        int interpBlue  = (int) Mth.lerp(variableRainbow, lowerBlue, upperBlue);
+        int interpAlpha = (int) Mth.lerp(t, lowerAlpha, upperAlpha);
+        int interpRed   = (int) Mth.lerp(t, lowerRed, upperRed);
+        int interpGreen = (int) Mth.lerp(t, lowerGreen, upperGreen);
+        int interpBlue  = (int) Mth.lerp(t, lowerBlue, upperBlue);
 
         return (interpAlpha << 24) | (interpRed << 16) | (interpGreen << 8) | interpBlue;
+    }
+
+    public static class Deserializer implements JsonDeserializer<ColorConfig> {
+
+        @Override
+        public ColorConfig deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            JsonObject jsonObject = json.getAsJsonObject();
+            MolangExpression interpolant = context.deserialize(jsonObject.get("interpolant"), MolangExpression.class);
+
+            List<ColorConfig.GradientStop> gradientStops = new ArrayList<>();
+
+            JsonObject gradientJson = jsonObject.getAsJsonObject("gradient");
+            for (Map.Entry<String, JsonElement> entry : gradientJson.entrySet()) {
+                try {
+                    float position = Float.parseFloat(entry.getKey());
+                    int color = ColorUtil.parseHexColor(entry.getValue().getAsString());
+                    gradientStops.add(new ColorConfig.GradientStop(position, color));
+                } catch (NumberFormatException e) {
+                    throw new JsonParseException("Invalid gradient position: " + entry.getKey(), e);
+                }
+            }
+
+            gradientStops.sort(Comparator.comparing(ColorConfig.GradientStop::position));
+
+            ColorConfig colorConfig = new ColorConfig();
+            colorConfig.gradient = gradientStops;
+            colorConfig.interpolant = interpolant;
+
+            return colorConfig;
+        }
     }
 }

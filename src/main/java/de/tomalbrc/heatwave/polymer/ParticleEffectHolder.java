@@ -204,14 +204,14 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
     private void emit() throws MolangRuntimeException {
         ParticleElement particle = new ParticleElement(this);
         InitialParticleData particleData = ShapeUtil.initialParticleData(this.runtime, this);
-        var pos = this.getPos().add(particleData.offset);
+        var pos = this.getPos().add(particleData.offset).toVector3f();
         particle.setPos(pos.x, pos.y, pos.z);
         var initSpeed = this.get(ParticleComponents.PARTICLE_INITIAL_SPEED);
         if (initSpeed != null) {
             var sx = this.runtime.resolve(initSpeed.value().get(0));
             var sy = initSpeed.value().size() > 1 ? this.runtime.resolve(initSpeed.value().get(1)) : sx;
             var sz = initSpeed.value().size() > 1 ? this.runtime.resolve(initSpeed.value().get(2)) : sx;
-            particle.setDelta(
+            particle.setSpeed(
                     (float) (particleData.direction.x * sx),
                     (float) (particleData.direction.y * sy),
                     (float) (particleData.direction.z * sz)

@@ -6,6 +6,7 @@ import de.tomalbrc.heatwave.component.ParticleComponentMap;
 import de.tomalbrc.heatwave.component.emitter.EmitterShapeBox;
 import de.tomalbrc.heatwave.component.emitter.EmitterShapeDisc;
 import de.tomalbrc.heatwave.component.emitter.EmitterShapeSphere;
+import de.tomalbrc.heatwave.component.misc.ColorConfig;
 import de.tomalbrc.heatwave.component.particle.ParticleAppearanceTinting;
 import de.tomalbrc.heatwave.curve.BezierCurve;
 import de.tomalbrc.heatwave.curve.CatmullRomCurve;
@@ -38,6 +39,7 @@ public class Json {
             .registerTypeAdapter(EmitterShapeBox.class, new EmitterShapeBox.Deserializer())
             .registerTypeAdapter(EmitterShapeDisc.class, new EmitterShapeDisc.Deserializer())
             .registerTypeAdapter(Curve.class, new CurveDeserializer())
+            .registerTypeAdapter(ColorConfig.class, new ColorConfig.Deserializer())
             .create();
 
     public static class CurveDeserializer implements JsonDeserializer<Curve> {
