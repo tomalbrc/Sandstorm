@@ -34,7 +34,7 @@ public class Particles {
         }
     }
 
-    private static ParticleEffectFile loadEffect(String path) throws IOException {
+    private static void loadEffect(String path) throws IOException {
         InputStream stream = Heatwave.class.getResourceAsStream(path);
         if (stream != null) {
             ParticleEffectFile effectFile = Json.GSON.fromJson(new InputStreamReader(stream), ParticleEffectFile.class);
@@ -46,7 +46,7 @@ public class Particles {
             }
 
             ALL.add(effectFile);
-            return effectFile;
+            //return effectFile;
         }
         throw new RuntimeException(String.format("Could not load particle file %s", path));
     }
