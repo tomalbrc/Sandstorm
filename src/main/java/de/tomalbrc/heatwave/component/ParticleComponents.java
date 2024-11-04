@@ -31,7 +31,7 @@ public class ParticleComponents {
     public static final ParticleComponentType<ParticleExpireIfInBlocks> PARTICLE_EXPIRE_IF_IN_BLOCKS = registerVanillaComponent("particle_expire_if_in_blocks", ParticleExpireIfInBlocks.class);
     public static final ParticleComponentType<ParticleExpireIfNotInBlocks> PARTICLE_EXPIRE_IF_NOT_IN_BLOCKS = registerVanillaComponent("particle_expire_if_not_in_blocks", ParticleExpireIfNotInBlocks.class);
     public static final ParticleComponentType<ParticleLifetimeEvents> PARTICLE_LIFETIME_EVENTS = registerVanillaComponent("particle_lifetime_events", ParticleLifetimeEvents.class);
-    public static final ParticleComponentType<ParticleLifetimeKillPlane> PARTICLE_LIFETIME_KILL_PLANE = registerVanillaComponent("particle_lifetime_kill_plane", ParticleLifetimeKillPlane.class);
+    public static final ParticleComponentType<ParticleKillPlane> PARTICLE_KILL_PLANE = registerVanillaComponent("particle_kill_plane", ParticleKillPlane.class);
     public static final ParticleComponentType<ParticleMotionCollision> PARTICLE_MOTION_COLLISION = registerVanillaComponent("particle_motion_collision", ParticleMotionCollision.class);
     public static final ParticleComponentType<ParticleMotionDynamic> PARTICLE_MOTION_DYNAMIC = registerVanillaComponent("particle_motion_dynamic", ParticleMotionDynamic.class);
     public static final ParticleComponentType<ParticleMotionParametric> PARTICLE_MOTION_PARAMETRIC = registerVanillaComponent("particle_motion_parametric", ParticleMotionParametric.class);

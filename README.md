@@ -25,10 +25,10 @@ WIP™
 - 🟢 `minecraft:emitter_rate_steady`
 - 🟢 `minecraft:emitter_rate_manual`
 - 🟢 `minecraft:emitter_shape_custom`
-- 🟠 `minecraft:emitter_lifetime_events`
+- 🟢 `minecraft:emitter_lifetime_expression`
+- 🟢 `minecraft:emitter_lifetime_events`
 - 🔴 `minecraft:emitter_shape_entity_aabb`
 - 🔴 `minecraft:emitter_local_space`
-- 🔴 `minecraft:emitter_lifetime_expression`
 
 ### Particle:
 
@@ -43,8 +43,8 @@ WIP™
 - 🟢 `minecraft:particle_appearance_tinting`
 - 🟢 `minecraft:particle_expire_if_in_blocks`
 - 🟢 `minecraft:particle_expire_if_not_in_blocks`
-- 🟠 `minecraft:particle_lifetime_events`
-- 🔴 `minecraft:particle_lifetime_kill_plane`
+- 🟢 `minecraft:particle_lifetime_events`
+- 🔴 `minecraft:particle_kill_plane`
 
 ## Issues
 
