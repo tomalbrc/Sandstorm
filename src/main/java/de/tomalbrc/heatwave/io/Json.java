@@ -8,6 +8,8 @@ import de.tomalbrc.heatwave.component.emitter.EmitterShapeDisc;
 import de.tomalbrc.heatwave.component.emitter.EmitterShapeSphere;
 import de.tomalbrc.heatwave.component.misc.ColorConfig;
 import de.tomalbrc.heatwave.component.particle.ParticleAppearanceTinting;
+import de.tomalbrc.heatwave.component.particle.ParticleExpireIfInBlocks;
+import de.tomalbrc.heatwave.component.particle.ParticleExpireIfNotInBlocks;
 import de.tomalbrc.heatwave.curve.BezierCurve;
 import de.tomalbrc.heatwave.curve.CatmullRomCurve;
 import de.tomalbrc.heatwave.curve.Curve;
@@ -34,6 +36,8 @@ public class Json {
             .registerTypeHierarchyAdapter(SoundEvent.class, new RegistryDeserializer<>(BuiltInRegistries.SOUND_EVENT))
             .registerTypeHierarchyAdapter(ParticleComponentMap.class, new ParticleComponentMap.Deserializer())
             .registerTypeHierarchyAdapter(MolangExpression.class, new MolangExpressionDeserializer())
+            .registerTypeAdapter(ParticleExpireIfNotInBlocks.class, new ParticleExpireIfNotInBlocks.Deserializer())
+            .registerTypeAdapter(ParticleExpireIfInBlocks.class, new ParticleExpireIfInBlocks.Deserializer())
             .registerTypeAdapter(ParticleAppearanceTinting.class, new ParticleAppearanceTinting.Deserializer())
             .registerTypeAdapter(EmitterShapeSphere.class, new EmitterShapeSphere.Deserializer())
             .registerTypeAdapter(EmitterShapeBox.class, new EmitterShapeBox.Deserializer())

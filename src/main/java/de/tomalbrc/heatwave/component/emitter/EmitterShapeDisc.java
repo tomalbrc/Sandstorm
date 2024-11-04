@@ -1,16 +1,12 @@
 package de.tomalbrc.heatwave.component.emitter;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.reflect.TypeToken;
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
 import de.tomalbrc.heatwave.util.EmitterDirection;
 import gg.moonflower.molangcompiler.api.MolangExpression;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.lang.reflect.Type;
-import java.util.List;
 
 // Emitter Shape Components
 public class EmitterShapeDisc implements ParticleComponent<EmitterShapeDisc> {
@@ -18,7 +14,7 @@ public class EmitterShapeDisc implements ParticleComponent<EmitterShapeDisc> {
     public MolangExpression[] planeNormal = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.of(1), MolangExpression.ZERO}; // default: [0, 1, 0]
 
     @SerializedName("offset")
-    public MolangExpression[] offset = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO};; // default: [0, 0, 0]
+    public MolangExpression[] offset = new MolangExpression[]{MolangExpression.ZERO, MolangExpression.ZERO, MolangExpression.ZERO}; // default: [0, 0, 0]
 
     @SerializedName("radius")
     public MolangExpression radius = MolangExpression.of(1); // default: 1

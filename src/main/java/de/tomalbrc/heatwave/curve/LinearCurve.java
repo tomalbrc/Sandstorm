@@ -5,8 +5,6 @@ import gg.moonflower.molangcompiler.api.MolangEnvironment;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 
-import java.util.List;
-
 public class LinearCurve implements Curve {
     public MolangExpression[] nodes;
     public MolangExpression input;

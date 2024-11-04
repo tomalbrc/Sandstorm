@@ -28,6 +28,7 @@ public class Particles {
             loadEffect("/particle/confetti.json");
             loadEffect("/particle/flame.json");
             loadEffect("/particle/combocurve.json");
+            loadEffect("/particle/rain.json");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

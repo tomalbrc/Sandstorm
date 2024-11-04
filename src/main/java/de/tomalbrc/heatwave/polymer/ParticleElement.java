@@ -4,12 +4,12 @@ import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.component.ParticleComponent;
 import de.tomalbrc.heatwave.component.ParticleComponentType;
 import de.tomalbrc.heatwave.component.ParticleComponents;
+import de.tomalbrc.heatwave.component.particle.ParticleAppearanceBillboard;
 import de.tomalbrc.heatwave.component.particle.ParticleMotionCollision;
 import de.tomalbrc.heatwave.component.particle.ParticleMotionDynamic;
 import de.tomalbrc.heatwave.component.particle.ParticleMotionParametric;
 import de.tomalbrc.heatwave.util.ParticleModels;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
-import eu.pb4.polymer.virtualentity.api.tracker.DisplayTrackedData;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
@@ -19,7 +19,6 @@ import net.minecraft.util.Brightness;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.block.state.BlockState;
@@ -74,8 +73,12 @@ public class ParticleElement extends ItemDisplayElement {
 
         this.item = ParticleModels.modelData(particleEffectHolder.getEffectFile(), 0, this.parent.runtime()).asStack();
 
-        if (this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD))
-            this.setBillboardMode(Display.BillboardConstraints.CENTER);
+        var billboard = this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD);
+        if (billboard != null) {
+            var y = billboard.cameraMode == ParticleAppearanceBillboard.CameraMode.LOOKAT_Y || billboard.cameraMode == ParticleAppearanceBillboard.CameraMode.ROTATE_Y;
+            if (y) this.setBillboardMode(Display.BillboardConstraints.VERTICAL);
+            else this.setBillboardMode(Display.BillboardConstraints.CENTER);
+        }
 
         this.setSendPositionUpdates(true);
         this.setInvisible(true);
@@ -109,7 +112,7 @@ public class ParticleElement extends ItemDisplayElement {
         this.rolld = accel;
     }
 
-    public void updateRuntimePerParticle(MolangRuntime runtime) throws MolangRuntimeException {
+    public void updateRuntimePerParticle(MolangRuntime runtime) {
         var rt = runtime.edit();
         rt.setVariable("particle_random_1", this.random_1);
         rt.setVariable("particle_random_2", this.random_2);
@@ -139,21 +142,21 @@ public class ParticleElement extends ItemDisplayElement {
         BlockState bs = inBlocks != null || notInBlocks != null ? this.parent.getAttachment().getWorld().getBlockState(BlockPos.containing(this.position.x, this.position.y, this.position.z)) : null;
 
         if (inBlocks != null) {
-            for (int i = 0; i < inBlocks.blocks.length; i++) {
-                if (inBlocks.blocks[i] == bs.getBlock())
+            for (int i = 0; i < inBlocks.value().length; i++) {
+                if (inBlocks.value()[i] == bs.getBlock())
                     return false;
             }
         }
         if (notInBlocks != null) {
-            boolean die = true;
-            for (int i = 0; i < notInBlocks.blocks.length; i++) {
-                if (notInBlocks.blocks[i] == bs.getBlock()) {
-                    die = false;
+            boolean alive = false;
+            for (int i = 0; i < notInBlocks.value().length; i++) {
+                if (notInBlocks.value()[i] == bs.getBlock()) {
+                    alive = true;
                     break;
                 }
             }
-            if (die)
-                return true;
+            if (!alive)
+                return false;
         }
 
         if (this.parent.runtime().resolve(this.lifetimeExpression) == 1)
@@ -203,6 +206,7 @@ public class ParticleElement extends ItemDisplayElement {
 
                 this.acceleration.add(this.speed.x * -dragCoefficient, this.speed.y * -dragCoefficient, this.speed.z * -dragCoefficient);
                 this.speed.add(this.acceleration.x * Heatwave.TIME_SCALE, this.acceleration.y * Heatwave.TIME_SCALE, this.acceleration.z * Heatwave.TIME_SCALE);
+                this.position.add(this.speed.x*Heatwave.TIME_SCALE, this.speed.y*Heatwave.TIME_SCALE, this.speed.z*Heatwave.TIME_SCALE);
 
                 this.move(
                         this.speed.x*Heatwave.TIME_SCALE,
@@ -242,16 +246,14 @@ public class ParticleElement extends ItemDisplayElement {
         if (this.parent.getAttachment() == null || this.parent.getAttachment().getWorld() == null)
             return;
 
-        Vec3 correctedSpeedFactor = new Vec3(nx, ny, nz);
-        boolean collided = false;
         if (this.physics) {
             if ((nx != 0.0 || ny != 0.0 || nz != 0.0) && nx * nx + ny * ny + nz * nz < MAX_COLLISION_VELOCITY) {
                 var bb = this.getBoundingBox();
-                correctedSpeedFactor = Entity.collideBoundingBox(null, new Vec3(nx, ny, nz), bb, this.parent.getAttachment().getWorld(), List.of());
-                boolean xc = Math.abs(correctedSpeedFactor.x) < 1.0E-3 && correctedSpeedFactor.x != nx;
-                boolean yc = Math.abs(correctedSpeedFactor.y) < 1.0E-3 && correctedSpeedFactor.y != ny;
-                boolean zc = Math.abs(correctedSpeedFactor.z) < 1.0E-3 && correctedSpeedFactor.z != nz;
-                collided = xc || yc || zc;
+                Vec3 correctedSpeedFactor = Entity.collideBoundingBox(null, new Vec3(nx, ny, nz), bb, this.parent.getAttachment().getWorld(), List.of());
+                boolean xc = correctedSpeedFactor.x != nx;
+                boolean yc = correctedSpeedFactor.y != ny;
+                boolean zc = correctedSpeedFactor.z != nz;
+                boolean collided = xc || yc || zc;
                 if (collided) { // coll check
                     ParticleMotionCollision motionCollision = this.get(ParticleComponents.PARTICLE_MOTION_COLLISION);
                     float bounciness = motionCollision.coefficientOfRestitution;
@@ -267,19 +269,15 @@ public class ParticleElement extends ItemDisplayElement {
                     if (zc)
                         this.speed.z *= -1;
 
-                    //this.position.y += (float) correctedSpeedFactor.y;
+                    this.position.y = (float) (previousPosition.y + correctedSpeedFactor.y);
 
                     this.speed.y *= bounciness;
                     this.speed.x = Mth.sign(this.speed.x) * Mth.clamp(Math.abs(this.speed.x) - (motionCollision.collisionDrag * Heatwave.TIME_SCALE), 0, Float.POSITIVE_INFINITY);
-                    this.speed.y = Mth.sign(this.speed.y) * Mth.clamp(Math.abs(this.speed.y) - (motionCollision.collisionDrag * Heatwave.TIME_SCALE), 0, Float.POSITIVE_INFINITY);
                     this.speed.z = Mth.sign(this.speed.z) * Mth.clamp(Math.abs(this.speed.z) - (motionCollision.collisionDrag * Heatwave.TIME_SCALE), 0, Float.POSITIVE_INFINITY);
                }
-            } else correctedSpeedFactor = Vec3.ZERO;
+            }
         }
-
-        position.add((float) (correctedSpeedFactor.x), (float) (correctedSpeedFactor.y), (float) (correctedSpeedFactor.z));
     }
-
 
     private void updateElementTick() throws MolangRuntimeException {
         this.setLeftRotation(new Quaternionf().rotateZ(this.roll * Mth.DEG_TO_RAD));
@@ -346,16 +344,18 @@ public class ParticleElement extends ItemDisplayElement {
     }
 
     public AABB getBoundingBox() {
-        var nx = previousPosition.x - bbRadius;
-        var px = previousPosition.x + bbRadius;
+        var p = previousPosition;
+
+        var nx = p.x - bbRadius;
+        var px = p.x + bbRadius;
         double minX = Math.min(nx, px);
         double maxX = Math.max(nx, px);
 
-        double minY = previousPosition.y;
-        double maxY = previousPosition.y + bbRadius;
+        double minY = p.y;
+        double maxY = p.y + bbRadius;
 
-        var nz = previousPosition.z - bbRadius;
-        var pz = previousPosition.z + bbRadius;
+        var nz = p.z - bbRadius;
+        var pz = p.z + bbRadius;
         double minZ = Math.min(nz, pz);
         double maxZ = Math.max(nz, pz);
 

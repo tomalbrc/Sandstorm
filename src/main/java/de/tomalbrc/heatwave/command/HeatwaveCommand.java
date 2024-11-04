@@ -14,11 +14,8 @@ import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
-import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
-import net.minecraft.commands.arguments.coordinates.Coordinates;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.commands.SummonCommand;
 
 import java.util.List;
 
@@ -42,12 +39,11 @@ public class HeatwaveCommand {
 
     private static int clear(CommandContext<CommandSourceStack> commandSourceStackCommandContext) {
         List<ParticleEffectHolder> toRemove = new ObjectArrayList<>();
-        for (ParticleEffectHolder holder : Heatwave.HOLDER) {
-            toRemove.add(holder);
-        }
+        toRemove.addAll(Heatwave.HOLDER);
         for (ParticleEffectHolder holder : toRemove) {
             holder.destroy();
         }
+        Heatwave.HOLDER.clear();
 
         return Command.SINGLE_SUCCESS;
     }
