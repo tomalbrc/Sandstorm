@@ -44,7 +44,21 @@ public class Json {
             .registerTypeAdapter(EmitterShapeDisc.class, new EmitterShapeDisc.Deserializer())
             .registerTypeAdapter(Curve.class, new CurveDeserializer())
             .registerTypeAdapter(ColorConfig.class, new ColorConfig.Deserializer())
+            .registerTypeAdapter(String[].class, new StringArrayDeserializer())
             .create();
+
+    public static class StringArrayDeserializer implements JsonDeserializer<String[]> {
+        @Override
+        public String[] deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            if (json.isJsonArray()) {
+                return context.deserialize(json, String[].class);
+            } else if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
+                return new String[]{json.getAsString()};
+            } else {
+                throw new JsonParseException("Unexpected type for creation_event field");
+            }
+        }
+    }
 
     public static class CurveDeserializer implements JsonDeserializer<Curve> {
         @Override

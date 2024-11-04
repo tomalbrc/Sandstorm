@@ -100,31 +100,33 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
     }
 
     public void runEvent(String event, ParticleElement particleElement) {
-        for (Map.Entry<String, EventSubpart> entry : this.effectFile.effect.events.entrySet()) {
-            if (entry.getKey().equals(event)) {
-                var list = entry.getValue().collect();
-                for (EventSubpart subpart : list) {
-                    if (subpart.log != null) {
-                        Heatwave.LOGGER.info("Particle event log: {}", subpart.log);
-                    }
-                    if (this.getAttachment() != null && this.getAttachment().getWorld() != null) {
-                        if (subpart.soundEffect != null) {
-                            var pos = particleElement != null ? particleElement.getCurrentPos() : this.getPos();
-                            this.getAttachment().getWorld().playSound(null, pos.x, pos.y, pos.z, SoundEvent.createVariableRangeEvent(ResourceLocation.parse(subpart.soundEffect.eventName())), SoundSource.AMBIENT);
+        final Vec3 pos = particleElement != null ? particleElement.getCurrentPos() : this.getPos();
+        executor.submit(() -> {
+            for (Map.Entry<String, EventSubpart> entry : this.effectFile.effect.events.entrySet()) {
+                if (entry.getKey().equals(event)) {
+                    var list = entry.getValue().collect();
+                    for (EventSubpart subpart : list) {
+                        if (subpart.log != null) {
+                            Heatwave.LOGGER.info("Particle event log: {}", subpart.log);
                         }
-                        if (subpart.particleEffect != null) {
-                            if (this.getAttachment() instanceof EntityAttachment entityAttachment && subpart.particleEffect.type() != null && subpart.particleEffect.type() == EventSubpart.ParticleEffect.Type.EMITTER_BOUND) {
-                                var entity = ((EntityAttachmentAccessor)entityAttachment).getEntity();
-                                ParticleUtil.emit(subpart.particleEffect.effect(), this.getAttachment().getWorld(), entity);
-                            } else {
-                                ParticleUtil.emit(subpart.particleEffect.effect(), this.getAttachment().getWorld(), this.getPos());
+                        if (this.getAttachment() != null && this.getAttachment().getWorld() != null) {
+                            if (subpart.soundEffect != null) {
+                                this.getAttachment().getWorld().playSound(null, pos.x, pos.y, pos.z, SoundEvent.createVariableRangeEvent(ResourceLocation.parse(subpart.soundEffect.eventName())), SoundSource.AMBIENT);
+                            }
+                            if (subpart.particleEffect != null) {
+                                if (this.getAttachment() instanceof EntityAttachment entityAttachment && subpart.particleEffect.type() != null && subpart.particleEffect.type() == EventSubpart.ParticleEffect.Type.EMITTER_BOUND) {
+                                    var entity = ((EntityAttachmentAccessor)entityAttachment).getEntity();
+                                    ParticleUtil.emit(subpart.particleEffect.effect(), this.getAttachment().getWorld(), entity);
+                                } else {
+                                    ParticleUtil.emit(subpart.particleEffect.effect(), this.getAttachment().getWorld(), this.getPos());
+                                }
                             }
                         }
                     }
+                    return;
                 }
-                return;
             }
-        }
+        });
     }
 
     @NotNull
@@ -200,7 +202,7 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
             this.emitOrRemoveParticles();
 
             var emitterLifetimeEvents = this.get(ParticleComponents.EMITTER_LIFETIME_EVENTS);
-            if (emitterLifetimeEvents != null) {
+            if (emitterLifetimeEvents != null && emitterLifetimeEvents.timeline != null) {
                 List<String> events = emitterLifetimeEvents.timeline.getEventsInRange(this.age*Heatwave.TIME_SCALE, Heatwave.TIME_SCALE);
                 for (var event: events) {
                     this.runEvent(event, null);

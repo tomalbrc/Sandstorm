@@ -4,6 +4,7 @@
 	},
 	"elements": [
 		{
+			"light_emission": 15,
 			"from": [0, 0, 8],
 			"to": [16, 16, 8],
 			"rotation": {"angle": 0, "axis": "y", "origin": [0, 0, 8]},

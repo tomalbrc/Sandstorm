@@ -55,11 +55,12 @@ public class ParticleModels {
 
     public static void addFrom(ParticleEffectFile effectFile) throws IOException, MolangRuntimeException {
         var billboard = effectFile.effect.components.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD);
-        handleUV(effectFile, billboard);
-        handleLifetimeFlipbook(effectFile, billboard);
+        var emissive = !effectFile.effect.components.has(ParticleComponents.PARTICLE_APPEARANCE_LIGHTING);
+        handleUV(effectFile, billboard, emissive);
+        handleLifetimeFlipbook(effectFile, billboard, emissive);
     }
 
-    private static void handleUV(ParticleEffectFile effectFile, ParticleAppearanceBillboard billboard) throws IOException, MolangRuntimeException {
+    private static void handleUV(ParticleEffectFile effectFile, ParticleAppearanceBillboard billboard, boolean emissive) throws IOException, MolangRuntimeException {
         Int2ObjectArrayMap<PolymerModelData> map = new Int2ObjectArrayMap<>();
         for (int i = 0; i < 10; i++) {
             var builder = MolangRuntime.runtime();
@@ -109,7 +110,7 @@ public class ParticleModels {
                     String texturePath = "textures/item/" + id + ".png";
                     String modelPath = "models/item/" + id + ".json";
                     DATA.put(texturePath, out.toByteArray());
-                    DATA.put(modelPath, getModel("heatwave:item/" + id));
+                    DATA.put(modelPath, getModel("heatwave:item/" + id, emissive));
 
                     map.put(i, PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Heatwave.MOD_ID, "item/" + id)));
                 }
@@ -119,7 +120,7 @@ public class ParticleModels {
 
     }
 
-    private static void handleLifetimeFlipbook(ParticleEffectFile effectFile, ParticleAppearanceBillboard billboard) throws IOException {
+    private static void handleLifetimeFlipbook(ParticleEffectFile effectFile, ParticleAppearanceBillboard billboard, boolean emissive) throws IOException {
         if (billboard != null && billboard.uv != null && billboard.uv.flipbook != null) {
             var path = effectFile.effect.description.renderParameters.get("texture");
             InputStream resource = Heatwave.class.getResourceAsStream("/" + path + ".png");
@@ -150,7 +151,7 @@ public class ParticleModels {
                     String texturePath = "textures/item/" + id + ".png";
                     String modelPath = "models/item/" + id + ".json";
                     DATA.put(texturePath, out.toByteArray());
-                    DATA.put(modelPath, getModel("heatwave:item/" + id));
+                    DATA.put(modelPath, getModel("heatwave:item/" + id, emissive));
 
                     map.put(i, PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Heatwave.MOD_ID, "item/" + id)));
                 }
@@ -159,8 +160,8 @@ public class ParticleModels {
         }
     }
 
-    private static byte[] getModel(String texturePath) {
-        try (var inputStream = Heatwave.class.getResourceAsStream("/template_model.json")) {
+    private static byte[] getModel(String texturePath, boolean emissive) {
+        try (var inputStream = Heatwave.class.getResourceAsStream(emissive ? "/template_model_emissive.json" : "/template_model.json")) {
             assert inputStream != null;
 
             String jsonString = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);

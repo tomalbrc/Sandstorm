@@ -233,7 +233,7 @@ public class ParticleElement extends ItemDisplayElement {
             }
 
             var particleLifetimeEvents = this.get(ParticleComponents.PARTICLE_LIFETIME_EVENTS);
-            if (particleLifetimeEvents != null) {
+            if (particleLifetimeEvents != null && particleLifetimeEvents.timeline != null) {
                 List<String> events = particleLifetimeEvents.timeline.getEventsInRange(this.age*Heatwave.TIME_SCALE, Heatwave.TIME_SCALE);
                 if (events != null) for (var event: events) {
                     this.parent.runEvent(event, this);

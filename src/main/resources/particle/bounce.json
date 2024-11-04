@@ -47,7 +47,17 @@
           "uv_size": [ 8, 8 ]
         }
       },
-      "minecraft:particle_appearance_lighting": {}
+      "minecraft:particle_appearance_lighting": {},
+      "minecraft:particle_lifetime_events": {
+        "expiration_event": "event"
+      }
+    },
+    "events": {
+      "event": {
+        "sound_effect": {
+          "event_name": "block.bubble_column.bubble_pop"
+        }
+      }
     }
   }
 }
