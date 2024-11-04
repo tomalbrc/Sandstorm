@@ -4,15 +4,22 @@ import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.component.ParticleComponentHolder;
 import de.tomalbrc.heatwave.component.ParticleComponentMap;
 import de.tomalbrc.heatwave.component.ParticleComponents;
+import de.tomalbrc.heatwave.component.misc.EventSubpart;
 import de.tomalbrc.heatwave.curve.Curve;
 import de.tomalbrc.heatwave.io.ParticleEffectFile;
+import de.tomalbrc.heatwave.mixin.EntityAttachmentAccessor;
+import de.tomalbrc.heatwave.util.ParticleUtil;
 import de.tomalbrc.heatwave.util.ShapeUtil;
 import eu.pb4.polymer.virtualentity.api.ElementHolder;
+import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
 import eu.pb4.polymer.virtualentity.api.elements.VirtualElement;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,10 +66,23 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
 
         this.updateRuntimePerEmitter(this.runtime);
         this.initCurves(this.runtime);
+
+        var emitterLifetimeEvents = this.get(ParticleComponents.EMITTER_LIFETIME_EVENTS);
+        if (emitterLifetimeEvents != null) {
+            for (var event: emitterLifetimeEvents.creationEvent) {
+                this.runEvent(event, null);
+            }
+        }
     }
 
     @Override
     public void destroy() {
+        var emitterLifetimeEvents = this.get(ParticleComponents.EMITTER_LIFETIME_EVENTS);
+        if (emitterLifetimeEvents != null) {
+            for (var event : emitterLifetimeEvents.expirationEvent) {
+                this.runEvent(event, null);
+            }
+        }
         Heatwave.HOLDER.remove(this);
         super.destroy();
     }
@@ -76,6 +96,34 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
             var index = key.indexOf('.');
             String varName = index != -1 ? key.substring(index + 1) : key;
             edit.setVariable(varName, val::evaluate);
+        }
+    }
+
+    public void runEvent(String event, ParticleElement particleElement) {
+        for (Map.Entry<String, EventSubpart> entry : this.effectFile.effect.events.entrySet()) {
+            if (entry.getKey().equals(event)) {
+                var list = entry.getValue().collect();
+                for (EventSubpart subpart : list) {
+                    if (subpart.log != null) {
+                        Heatwave.LOGGER.info("Particle event log: {}", subpart.log);
+                    }
+                    if (this.getAttachment() != null && this.getAttachment().getWorld() != null) {
+                        if (subpart.soundEffect != null) {
+                            var pos = particleElement != null ? particleElement.getCurrentPos() : this.getPos();
+                            this.getAttachment().getWorld().playSound(null, pos.x, pos.y, pos.z, SoundEvent.createVariableRangeEvent(ResourceLocation.parse(subpart.soundEffect.eventName())), SoundSource.AMBIENT);
+                        }
+                        if (subpart.particleEffect != null) {
+                            if (this.getAttachment() instanceof EntityAttachment entityAttachment && subpart.particleEffect.type() != null && subpart.particleEffect.type() == EventSubpart.ParticleEffect.Type.EMITTER_BOUND) {
+                                var entity = ((EntityAttachmentAccessor)entityAttachment).getEntity();
+                                ParticleUtil.emit(subpart.particleEffect.effect(), this.getAttachment().getWorld(), entity);
+                            } else {
+                                ParticleUtil.emit(subpart.particleEffect.effect(), this.getAttachment().getWorld(), this.getPos());
+                            }
+                        }
+                    }
+                }
+                return;
+            }
         }
     }
 
@@ -105,6 +153,7 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
                 }
             }
         }
+
         if (once != null) {
             var max = lifetime = runtime.resolve(once.activeTime);
             if (this.age * Heatwave.TIME_SCALE >= max) {
@@ -149,7 +198,16 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
             ParticleEffectHolder.executor.submit(this::asyncTick);
 
             this.emitOrRemoveParticles();
-            this.updateRuntimePerEmitter(this.runtime); // todo: call earlier
+
+            var emitterLifetimeEvents = this.get(ParticleComponents.EMITTER_LIFETIME_EVENTS);
+            if (emitterLifetimeEvents != null) {
+                List<String> events = emitterLifetimeEvents.timeline.getEventsInRange(this.age*Heatwave.TIME_SCALE, Heatwave.TIME_SCALE);
+                for (var event: events) {
+                    this.runEvent(event, null);
+                }
+            }
+
+            this.updateRuntimePerEmitter(this.runtime); // maybe call earlier?
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

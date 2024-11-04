@@ -2,7 +2,7 @@ package de.tomalbrc.heatwave.component.particle;
 
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
-import de.tomalbrc.heatwave.component.misc.EventConfig;
+import de.tomalbrc.heatwave.component.misc.ConditionedEvent;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 
 import java.util.List;
@@ -20,5 +20,5 @@ public class ParticleMotionCollision implements ParticleComponent<ParticleMotion
     @SerializedName("expire_on_contact")
     public boolean expireOnContact;
     @SerializedName("events")
-    public List<EventConfig> events;
+    public ConditionedEvent[] events = new ConditionedEvent[0];
 }

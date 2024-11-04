@@ -2,7 +2,9 @@ package de.tomalbrc.heatwave.component.particle;
 
 import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
+import de.tomalbrc.heatwave.component.misc.Timeline;
 
+import java.util.List;
 import java.util.Map;
 
 public class ParticleLifetimeEvents implements ParticleComponent<ParticleLifetimeEvents> {
@@ -11,5 +13,5 @@ public class ParticleLifetimeEvents implements ParticleComponent<ParticleLifetim
     @SerializedName("expiration_event")
     public String[] expirationEvent;
     @SerializedName("timeline")
-    public Map<String, String> timeline;
+    public Timeline timeline; // time to event mapping
 }

@@ -29,6 +29,7 @@ public class Particles {
             loadEffect("/particle/flame.json");
             loadEffect("/particle/combocurve.json");
             loadEffect("/particle/rain.json");
+            loadEffect("/particle/event.json");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -46,6 +47,7 @@ public class Particles {
             }
 
             ALL.add(effectFile);
+            return;
             //return effectFile;
         }
         throw new RuntimeException(String.format("Could not load particle file %s", path));

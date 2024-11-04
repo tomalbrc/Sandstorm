@@ -7,6 +7,7 @@ import de.tomalbrc.heatwave.Heatwave;
 import de.tomalbrc.heatwave.Particles;
 import de.tomalbrc.heatwave.io.ParticleEffectFile;
 import de.tomalbrc.heatwave.polymer.ParticleEffectHolder;
+import de.tomalbrc.heatwave.util.ParticleUtil;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -16,6 +17,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
@@ -27,7 +29,7 @@ public class HeatwaveCommand {
         var heatwaveNode = Commands
                 .literal("heatwave").requires(Permissions.require("heatwave.command", 1)).executes(x -> {
                     x.getSource().sendSystemMessage(Component.literal("Heatwave 1.0"));
-                    return 1;
+                    return Command.SINGLE_SUCCESS;
                 });
 
         heatwaveNode.then(argument("effect", ResourceLocationArgument.id()).suggests(new ParticleSuggestionProvider()).executes(HeatwaveCommand::execute));
@@ -49,45 +51,14 @@ public class HeatwaveCommand {
     }
 
     private static int execute(CommandContext<CommandSourceStack> context) {
-        ParticleEffectFile file = effectFile(context);
-
-        if (file != null && context.getSource() != null) {
-            ParticleEffectHolder holder;
-            try {
-                holder = new ParticleEffectHolder(file, context.getSource().getLevel());
-            } catch (MolangRuntimeException e) {
-                throw new RuntimeException(e);
-            }
-            ChunkAttachment.ofTicking(holder, context.getSource().getLevel(), context.getSource().getPosition());
-        }
-
+        ResourceLocation effectString = ResourceLocationArgument.getId(context, "effect");
+        ParticleUtil.emit(effectString, context.getSource().getLevel(), context.getSource().getPosition());
         return Command.SINGLE_SUCCESS;
     }
 
-    private static ParticleEffectFile effectFile(CommandContext<CommandSourceStack> context) {
-        ParticleEffectFile file = null;
-        String effectString = ResourceLocationArgument.getId(context, "effect").toString();
-        for (ParticleEffectFile effectFile : Particles.ALL) {
-            if (effectFile.effect.description.identifier.toString().equals(effectString)) {
-                file = effectFile;
-                break;
-            }
-        }
-        return file;
-    }
-
     private static int executeAt(CommandContext<CommandSourceStack> context) {
-        ParticleEffectFile file = effectFile(context);
-        if (file != null && context.getSource() != null) {
-            ParticleEffectHolder holder;
-            try {
-                holder = new ParticleEffectHolder(file, context.getSource().getLevel());
-            } catch (MolangRuntimeException e) {
-                throw new RuntimeException(e);
-            }
-            ChunkAttachment.ofTicking(holder, context.getSource().getLevel(), Vec3Argument.getVec3(context,"position"));
-        }
-
-        return 0;
+        ResourceLocation effectString = ResourceLocationArgument.getId(context, "effect");
+        ParticleUtil.emit(effectString, context.getSource().getLevel(), Vec3Argument.getVec3(context,"position"));
+        return Command.SINGLE_SUCCESS;
     }
 }

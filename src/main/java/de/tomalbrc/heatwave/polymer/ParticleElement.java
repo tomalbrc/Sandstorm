@@ -89,9 +89,17 @@ public class ParticleElement extends ItemDisplayElement {
         if (!this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_LIGHTING))
             this.setBrightness(Brightness.FULL_BRIGHT);
 
-        if (particleEffectHolder.has(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION)) {
-            this.maxLifetime = this.parent.runtime().resolve(this.get(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION).maxLifetime);
-            this.lifetimeExpression = particleEffectHolder.get(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION).expirationExpression;
+        var particleLifetimeExpression = particleEffectHolder.get(ParticleComponents.PARTICLE_LIFETIME_EXPRESSION);
+        if (particleLifetimeExpression != null) {
+            this.maxLifetime = this.parent.runtime().resolve(particleLifetimeExpression.maxLifetime);
+            this.lifetimeExpression = particleLifetimeExpression.expirationExpression;
+        }
+
+        var particleLifetimeEvents = this.get(ParticleComponents.PARTICLE_LIFETIME_EVENTS);
+        if (particleLifetimeEvents != null) {
+            for (var event: particleLifetimeEvents.creationEvent) {
+                this.parent.runEvent(event, this);
+            }
         }
 
         this.updateElementTick();
@@ -224,6 +232,14 @@ public class ParticleElement extends ItemDisplayElement {
                 }
             }
 
+            var particleLifetimeEvents = this.get(ParticleComponents.PARTICLE_LIFETIME_EVENTS);
+            if (particleLifetimeEvents != null) {
+                List<String> events = particleLifetimeEvents.timeline.getEventsInRange(this.age*Heatwave.TIME_SCALE, Heatwave.TIME_SCALE);
+                if (events != null) for (var event: events) {
+                    this.parent.runEvent(event, this);
+                }
+            }
+
             this.updateElementTick();
         }
         catch (Exception e) {
@@ -257,6 +273,14 @@ public class ParticleElement extends ItemDisplayElement {
                 if (collided) { // coll check
                     ParticleMotionCollision motionCollision = this.get(ParticleComponents.PARTICLE_MOTION_COLLISION);
                     float bounciness = motionCollision.coefficientOfRestitution;
+
+                    if (motionCollision.events.length > 0) {
+                        var speed = this.speed.length();
+                        for (var event: motionCollision.events) {
+                            if (event.minSpeed != 0 && event.minSpeed > speed) continue;
+                            this.parent.runEvent(event.event, this);
+                        }
+                    }
 
                     if (motionCollision.expireOnContact) {
                         this.remove();
@@ -336,6 +360,14 @@ public class ParticleElement extends ItemDisplayElement {
     }
 
     public void remove() {
+        if (!this.removed) {
+            var particleLifetimeEvents = this.get(ParticleComponents.PARTICLE_LIFETIME_EVENTS);
+            if (particleLifetimeEvents != null) {
+                for (var event: particleLifetimeEvents.expirationEvent) {
+                    this.parent.runEvent(event, this);
+                }
+            }
+        }
         this.removed = true;
     }
 

@@ -4,6 +4,7 @@
   "package": "de.tomalbrc.heatwave.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "EntityAttachmentAccessor"
   ],
   "client": [
   ],
