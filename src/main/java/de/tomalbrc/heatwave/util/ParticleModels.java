@@ -30,19 +30,7 @@ import java.util.UUID;
 
 public class ParticleModels {
     private static final Map<ParticleEffectFile, Int2ObjectArrayMap<PolymerModelData>> POLYMER_MODEL_DATA = new Object2ObjectOpenHashMap<>();
-
     private static final Map<String, byte[]> DATA = new Object2ObjectOpenHashMap<>();
-
-    public static PolymerModelData modelData(ParticleEffectFile effectFile, float normalizedLifetime, MolangEnvironment environment) throws MolangRuntimeException {
-        var billboard = effectFile.effect.components.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD);
-        if (billboard != null && billboard.uv != null && billboard.uv.flipbook != null && billboard.uv.flipbook.stretch_to_lifetime) {
-            var max = environment.resolve(billboard.uv.flipbook.max_frame);
-            return POLYMER_MODEL_DATA.get(effectFile).get(Math.min((int)(normalizedLifetime * max), POLYMER_MODEL_DATA.get(effectFile).size()-1));
-        }
-
-        var map = POLYMER_MODEL_DATA.get(effectFile);
-        return map.get((int) (Math.random() * (map.size()-1)));
-    }
 
     public static PolymerModelData modelData(ParticleEffectFile effectFile, int flipbookRnd, float normalizedLifetime, MolangEnvironment environment) throws MolangRuntimeException {
         var billboard = effectFile.effect.components.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD);
