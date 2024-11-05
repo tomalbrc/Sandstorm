@@ -1,6 +1,7 @@
 package de.tomalbrc.heatwave;
 
 import de.tomalbrc.heatwave.io.Json;
+import de.tomalbrc.heatwave.io.ParticleEffect;
 import de.tomalbrc.heatwave.io.ParticleEffectFile;
 import de.tomalbrc.heatwave.util.ParticleModels;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
@@ -9,6 +10,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.List;
 
 public class Particles {
@@ -35,22 +37,55 @@ public class Particles {
         }
     }
 
+    // read builtin particle file
     private static void loadEffect(String path) throws IOException {
         InputStream stream = Heatwave.class.getResourceAsStream(path);
-        if (stream != null) {
-            ParticleEffectFile effectFile = Json.GSON.fromJson(new InputStreamReader(stream), ParticleEffectFile.class);
+        loadEffect(stream);
+    }
 
-            try {
-                ParticleModels.addFrom(effectFile);
-            } catch (MolangRuntimeException e) {
-                throw new RuntimeException(e);
-            }
+    public static ParticleEffectFile loadEffect(InputStream effectFileContents, InputStream imageContents) {
+        ParticleEffectFile effectFile = Json.GSON.fromJson(new InputStreamReader(effectFileContents), ParticleEffectFile.class);
+        return loadEffect(effectFile, imageContents);
+    }
 
-            ALL.add(effectFile);
-            return;
-            //return effectFile;
+    public static ParticleEffectFile loadEffect(ParticleEffectFile effectFile, InputStream imageContents) {
+        try {
+            ParticleModels.addFrom(effectFile, imageContents);
+        } catch (MolangRuntimeException | IOException e) {
+            throw new RuntimeException(e);
         }
-        throw new RuntimeException(String.format("Could not load particle file %s", path));
+
+        ALL.add(effectFile);
+        return effectFile;
+    }
+
+    // load particle effect file using textures from config or builtin
+    public static ParticleEffectFile loadEffect(InputStream inputStream) {
+        ParticleEffectFile effectFile = Json.GSON.fromJson(new InputStreamReader(inputStream), ParticleEffectFile.class);
+        var texturePath = effectFile.effect.description.renderParameters.get("texture");
+        return loadEffect(effectFile, readLocalImage(texturePath));
+    }
+
+    // read texture from configs or builtin, in that order
+    public static InputStream readLocalImage(String path) {
+        InputStream resource = null;
+        try {
+            resource = Files.newInputStream(Heatwave.CONFIG_DIR.resolve(path));
+        } catch (IOException ignored) {
+
+        }
+
+        try {
+            if (resource == null || resource.available() < 0) {
+                resource = Heatwave.class.getResourceAsStream("/" + path + ".png");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        assert resource != null;
+
+        return resource;
     }
 
     public static void init() {}

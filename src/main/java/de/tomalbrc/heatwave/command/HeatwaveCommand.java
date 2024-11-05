@@ -18,6 +18,7 @@ import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.joml.Vector2f;
 
 import java.util.List;
 
@@ -52,13 +53,13 @@ public class HeatwaveCommand {
 
     private static int execute(CommandContext<CommandSourceStack> context) {
         ResourceLocation effectString = ResourceLocationArgument.getId(context, "effect");
-        ParticleUtil.emit(effectString, context.getSource().getLevel(), context.getSource().getPosition());
+        ParticleUtil.emit(effectString, context.getSource().getLevel(), context.getSource().getPosition(), new Vector2f(context.getSource().getRotation().x, context.getSource().getRotation().y));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int executeAt(CommandContext<CommandSourceStack> context) {
         ResourceLocation effectString = ResourceLocationArgument.getId(context, "effect");
-        ParticleUtil.emit(effectString, context.getSource().getLevel(), Vec3Argument.getVec3(context,"position"));
+        ParticleUtil.emit(effectString, context.getSource().getLevel(), Vec3Argument.getVec3(context,"position"), new Vector2f(0,0));
         return Command.SINGLE_SUCCESS;
     }
 }

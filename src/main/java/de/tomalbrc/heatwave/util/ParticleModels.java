@@ -22,7 +22,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.UUID;
 
@@ -53,14 +55,16 @@ public class ParticleModels {
         DATA.clear();
     }
 
-    public static void addFrom(ParticleEffectFile effectFile) throws IOException, MolangRuntimeException {
+    public static void addFrom(ParticleEffectFile effectFile, InputStream imageStream) throws IOException, MolangRuntimeException {
         var billboard = effectFile.effect.components.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD);
         var emissive = !effectFile.effect.components.has(ParticleComponents.PARTICLE_APPEARANCE_LIGHTING);
-        handleUV(effectFile, billboard, emissive);
-        handleLifetimeFlipbook(effectFile, billboard, emissive);
+
+        BufferedImage image = ImageIO.read(imageStream);
+        handleUV(effectFile, image, billboard, emissive);
+        handleLifetimeFlipbook(effectFile, image, billboard, emissive);
     }
 
-    private static void handleUV(ParticleEffectFile effectFile, ParticleAppearanceBillboard billboard, boolean emissive) throws IOException, MolangRuntimeException {
+    private static void handleUV(ParticleEffectFile effectFile, BufferedImage image, ParticleAppearanceBillboard billboard, boolean emissive) throws IOException, MolangRuntimeException {
         Int2ObjectArrayMap<PolymerModelData> map = new Int2ObjectArrayMap<>();
         for (int i = 0; i < 10; i++) {
             var builder = MolangRuntime.runtime();
@@ -75,10 +79,6 @@ public class ParticleModels {
             IntSet wSet = new IntArraySet();
             IntSet hSet = new IntArraySet();
             if (billboard != null && billboard.uv.uv != null) {
-                var path = effectFile.effect.description.renderParameters.get("texture");
-                InputStream resource = Heatwave.class.getResourceAsStream("/" + path + ".png");
-                assert resource != null;
-
                 boolean texel = billboard.uv.textureWidth != 1 && billboard.uv.textureHeight != 1;
                 float xs = texel ? 1.f : billboard.uv.textureWidth;
                 float ys = texel ? 1.f : billboard.uv.textureHeight;
@@ -96,7 +96,6 @@ public class ParticleModels {
                 wSet.add(w);
                 hSet.add(h);
 
-                BufferedImage image = ImageIO.read(resource);
                 BufferedImage newImage = image.getSubimage(
                         x,
                         y,
@@ -120,15 +119,8 @@ public class ParticleModels {
 
     }
 
-    private static void handleLifetimeFlipbook(ParticleEffectFile effectFile, ParticleAppearanceBillboard billboard, boolean emissive) throws IOException {
+    private static void handleLifetimeFlipbook(ParticleEffectFile effectFile, BufferedImage image, ParticleAppearanceBillboard billboard, boolean emissive) throws IOException {
         if (billboard != null && billboard.uv != null && billboard.uv.flipbook != null) {
-            var path = effectFile.effect.description.renderParameters.get("texture");
-            InputStream resource = Heatwave.class.getResourceAsStream("/" + path + ".png");
-            assert resource != null;
-
-
-            BufferedImage image = ImageIO.read(resource);
-
             boolean normalized = billboard.uv.textureWidth == 1 || billboard.uv.textureHeight == 1;
             float xs = !normalized ? 1.f : (float) image.getWidth() / billboard.uv.textureWidth;
             float ys = !normalized ? 1.f : (float) image.getHeight() / billboard.uv.textureHeight;

@@ -20,8 +20,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector2f;
 
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,8 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
     private boolean canEmit = true;
 
     private final ServerLevel serverLevel;
+    private float xRot;
+    private float yRot;
 
     public ParticleEffectHolder(ParticleEffectFile effectFile, ServerLevel level) throws MolangRuntimeException {
         Heatwave.HOLDER.add(this);
@@ -118,7 +122,7 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
                                     var entity = ((EntityAttachmentAccessor)entityAttachment).getEntity();
                                     ParticleUtil.emit(subpart.particleEffect.effect(), this.getAttachment().getWorld(), entity);
                                 } else {
-                                    ParticleUtil.emit(subpart.particleEffect.effect(), this.getAttachment().getWorld(), this.getPos());
+                                    ParticleUtil.emit(subpart.particleEffect.effect(), this.getAttachment().getWorld(), this.getPos(), new Vector2f(this.xRot,this.yRot));
                                 }
                             }
                         }
@@ -264,17 +268,20 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
     private void emit() throws MolangRuntimeException {
         ParticleElement particle = new ParticleElement(this);
         InitialParticleData particleData = ShapeUtil.initialParticleData(this.runtime, this);
-        var pos = this.getPos().add(particleData.offset).toVector3f();
+        var pos = this.getPos().toVector3f().add(particleData.offset.toVector3f().rotateX(this.xRot* Mth.DEG_TO_RAD).rotateY(this.yRot* Mth.DEG_TO_RAD));
         particle.setPos(pos.x, pos.y, pos.z);
+
+        var dir = particleData.direction.toVector3f().rotateX(this.xRot* Mth.DEG_TO_RAD).rotateY(this.yRot* Mth.DEG_TO_RAD);
+
         var initSpeed = this.get(ParticleComponents.PARTICLE_INITIAL_SPEED);
         if (initSpeed != null) {
             var sx = this.runtime.resolve(initSpeed.value().get(0));
             var sy = initSpeed.value().size() > 1 ? this.runtime.resolve(initSpeed.value().get(1)) : sx;
             var sz = initSpeed.value().size() > 1 ? this.runtime.resolve(initSpeed.value().get(2)) : sx;
             particle.setSpeed(
-                    (float) (particleData.direction.x * sx),
-                    (float) (particleData.direction.y * sy),
-                    (float) (particleData.direction.z * sz)
+                    dir.x * sx,
+                    dir.y * sy,
+                    dir.z * sz
             );
         }
         var initSpin = this.get(ParticleComponents.PARTICLE_INITIAL_SPIN);
@@ -306,6 +313,11 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
 
     public ServerLevel serverLevel() {
         return this.serverLevel;
+    }
+
+    public void setRotation(float xRot, float yRot) {
+        this.xRot = xRot;
+        this.yRot = yRot;
     }
 
     public record InitialParticleData(Vec3 offset, Vec3 direction) {
