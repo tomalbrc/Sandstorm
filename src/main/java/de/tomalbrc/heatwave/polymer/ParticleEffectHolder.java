@@ -235,7 +235,7 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
             }
         }
 
-        if (!this.canEmit() || this.particleElements.size() > 10_000) // 10k as safety guard :P
+        if (!this.canEmit() || this.particleElements.size() > 20_000) // 20k as safety guard :P
             return;
 
         var steady = this.get(ParticleComponents.EMITTER_RATE_STEADY);
@@ -244,10 +244,17 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
 
         if (steady != null) {
             var maxParticles = runtime.resolve(this.get(ParticleComponents.EMITTER_RATE_STEADY).maxParticles);
-            var spawnRate = runtime.resolve(this.get(ParticleComponents.EMITTER_RATE_STEADY).spawnRate) * Heatwave.TIME_SCALE;
+            double spawnRateTick = runtime.resolve(this.get(ParticleComponents.EMITTER_RATE_STEADY).spawnRate) * Heatwave.TIME_SCALE;
 
-            int particlesToSpawn = (int)spawnRate;
-            for (int i = 0; i < particlesToSpawn && this.particleElements.size() <= maxParticles; i++) {
+            var modulo = Math.round(1/spawnRateTick);
+            float ceilFloor = this.age;
+            if (modulo != 0 && ceilFloor % modulo == 0) {
+                spawnRateTick = Math.ceil(spawnRateTick);
+            } else {
+                spawnRateTick = Math.floor(spawnRateTick);
+            }
+
+            for (int i = 0; i < spawnRateTick && this.particleElements.size() <= maxParticles; i++) {
                 this.emit();
             }
         }

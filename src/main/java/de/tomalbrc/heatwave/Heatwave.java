@@ -1,7 +1,5 @@
 package de.tomalbrc.heatwave;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.mojang.logging.LogUtils;
 import de.tomalbrc.heatwave.command.HeatwaveCommand;
 import de.tomalbrc.heatwave.component.ParticleComponents;
@@ -17,8 +15,10 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class Heatwave implements ModInitializer {
     public static final Logger LOGGER = LogUtils.getLogger();
@@ -39,11 +39,30 @@ public class Heatwave implements ModInitializer {
         ParticleComponents.init();
         Particles.init();
 
+        loadFromConfig();
+
         CommandRegistrationCallback.EVENT.register((dispatcher, context, selection) -> {
             HeatwaveCommand.register(dispatcher);
         });
 
         PolymerResourcePackUtils.RESOURCE_PACK_CREATION_EVENT.register(ParticleModels::addToResourcePack);
+    }
+
+    public static void loadFromConfig() {
+        Path particleDir = CONFIG_DIR.resolve("particle");
+        try (Stream<Path> paths = Files.walk(particleDir)) {
+            paths.filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".json"))
+                    .forEach(path -> {
+                        try (InputStream inputStream = Files.newInputStream(path)) {
+                            Particles.loadEffect(inputStream);
+                        } catch (IOException e) {
+                            Heatwave.LOGGER.error("Could not load {}!", path);
+                        }
+                    });
+        } catch (IOException e) {
+            Heatwave.LOGGER.error("Could not access 'particle' folder!");
+        };
     }
 
     public static void createDirectoryStructure() {

@@ -1,6 +1,5 @@
 package de.tomalbrc.heatwave.component.misc;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;

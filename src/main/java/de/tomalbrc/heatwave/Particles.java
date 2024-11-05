@@ -1,7 +1,6 @@
 package de.tomalbrc.heatwave;
 
 import de.tomalbrc.heatwave.io.Json;
-import de.tomalbrc.heatwave.io.ParticleEffect;
 import de.tomalbrc.heatwave.io.ParticleEffectFile;
 import de.tomalbrc.heatwave.util.ParticleModels;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
@@ -70,7 +69,7 @@ public class Particles {
     public static InputStream readLocalImage(String path) {
         InputStream resource = null;
         try {
-            resource = Files.newInputStream(Heatwave.CONFIG_DIR.resolve(path));
+            resource = Files.newInputStream(Heatwave.CONFIG_DIR.resolve(path + ".png"));
         } catch (IOException ignored) {
 
         }

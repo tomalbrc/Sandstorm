@@ -1,20 +1,16 @@
 package de.tomalbrc.heatwave.util;
 
 import de.tomalbrc.heatwave.Particles;
-import de.tomalbrc.heatwave.component.ParticleComponentHolder;
 import de.tomalbrc.heatwave.io.ParticleEffectFile;
 import de.tomalbrc.heatwave.polymer.ParticleEffectHolder;
 import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
 import eu.pb4.polymer.virtualentity.api.attachment.EntityAttachment;
-import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
-import net.minecraft.commands.arguments.coordinates.RotationArgument;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector2f;
-import org.joml.Vector3f;
 
 public class ParticleUtil {
     public static void emit(ResourceLocation resourceLocation, ServerLevel serverLevel, Vec3 position, Vector2f rotation) {

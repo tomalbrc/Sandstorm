@@ -5,8 +5,6 @@ import de.tomalbrc.heatwave.component.ParticleComponent;
 import de.tomalbrc.heatwave.component.misc.ConditionedEvent;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 
-import java.util.List;
-
 // Particle Motion Components
 public class ParticleMotionCollision implements ParticleComponent<ParticleMotionCollision> {
     @SerializedName("enabled")

@@ -71,7 +71,7 @@ public class ParticleElement extends ItemDisplayElement {
 
         this.updateRuntimePerParticle(this.parent.runtime());
 
-        this.item = ParticleModels.modelData(particleEffectHolder.getEffectFile(), 0, this.parent.runtime()).asStack();
+        this.item = ParticleModels.modelData(particleEffectHolder.getEffectFile(), (int)(this.random_1*10), 0, this.parent.runtime()).asStack();
 
         var billboard = this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD);
         if (billboard != null) {
@@ -325,7 +325,7 @@ public class ParticleElement extends ItemDisplayElement {
         if (billboard != null && billboard.uv.flipbook != null) {
             if (billboard.uv.flipbook.stretch_to_lifetime) {
                 float nLifetime = scaledAge() / this.maxLifetime;
-                var newStack = ParticleModels.modelData(this.parent.getEffectFile(), nLifetime, this.parent.runtime()).asStack();
+                var newStack = ParticleModels.modelData(this.parent.getEffectFile(), (int)(this.random_1*10), nLifetime, this.parent.runtime()).asStack();
                 if (this.item.get(DataComponents.CUSTOM_MODEL_DATA) != newStack.get(DataComponents.CUSTOM_MODEL_DATA)) {
                     newStack.set(DataComponents.DYED_COLOR, this.item.get(DataComponents.DYED_COLOR));
                     this.item = newStack;
@@ -335,7 +335,7 @@ public class ParticleElement extends ItemDisplayElement {
                 var frame = (int)(scaledAge() / (1.f/billboard.uv.flipbook.frames_per_second));
                 var max = (int)this.parent.runtime().resolve(billboard.uv.flipbook.max_frame);
                 int index = billboard.uv.flipbook.loop ? frame % max : Math.min(frame, max - 1);
-                var newStack = ParticleModels.modelData(this.parent.getEffectFile(), index).asStack();
+                var newStack = ParticleModels.modelData(this.parent.getEffectFile(), (int)(this.random_1*10), index).asStack();
                 if (this.item.get(DataComponents.CUSTOM_MODEL_DATA) != newStack.get(DataComponents.CUSTOM_MODEL_DATA)) {
                     newStack.set(DataComponents.DYED_COLOR, this.item.get(DataComponents.DYED_COLOR));
                     this.item = newStack;

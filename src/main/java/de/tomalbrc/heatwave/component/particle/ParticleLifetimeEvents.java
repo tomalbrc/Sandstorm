@@ -4,9 +4,6 @@ import com.google.gson.annotations.SerializedName;
 import de.tomalbrc.heatwave.component.ParticleComponent;
 import de.tomalbrc.heatwave.component.misc.Timeline;
 
-import java.util.List;
-import java.util.Map;
-
 public class ParticleLifetimeEvents implements ParticleComponent<ParticleLifetimeEvents> {
     @SerializedName("creation_event")
     public String[] creationEvent = new String[0];
