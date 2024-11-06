@@ -1,4 +1,4 @@
-# Heatwave
+# Sandstorm
 
 Bedrock/Snowstorm compatible particle engine but for fabric, java - using polymer for packet-based display entities
 
