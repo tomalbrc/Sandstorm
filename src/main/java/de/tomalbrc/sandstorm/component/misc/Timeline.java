@@ -19,10 +19,12 @@ public class Timeline {
         float lowerBound = time - dt;
         List<String> eventsInRange = new ObjectArrayList<>();
 
-        for (Map.Entry<Float, List<String>> entry : timeEvents.entrySet()) {
-            Float eventTime = entry.getKey();
-            if (eventTime >= lowerBound && eventTime < time) {
-                eventsInRange.addAll(entry.getValue());
+        if (this.timeEvents != null) {
+            for (Map.Entry<Float, List<String>> entry : timeEvents.entrySet()) {
+                Float eventTime = entry.getKey();
+                if (eventTime >= lowerBound && eventTime < time) {
+                    eventsInRange.addAll(entry.getValue());
+                }
             }
         }
 
