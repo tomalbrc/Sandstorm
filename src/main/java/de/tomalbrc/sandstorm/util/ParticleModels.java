@@ -85,45 +85,60 @@ public class ParticleModels {
 
     private static void handleUV(ParticleEffectFile effectFile, BufferedImage image, ParticleAppearanceBillboard billboard, boolean emissive) throws IOException, MolangRuntimeException {
         Int2ObjectArrayMap<PolymerModelData> map = new Int2ObjectArrayMap<>();
-        ObjectOpenHashSet<Vector4i> vecs = new ObjectOpenHashSet<>();
-        int realI = 0;
-        for (int i = 0; i < 10; i++) {
-            var builder = MolangRuntime.runtime();
-            builder.setVariable("particle_random_1", (float) Math.random());
-            builder.setVariable("particle_random_2", (float) Math.random());
-            builder.setVariable("particle_random_3", (float) Math.random());
-            builder.setVariable("particle_random_4", (float) Math.random());
-            var runtime = builder.create();
+        if (billboard.uv != null) {
+            ObjectOpenHashSet<Vector4i> vecs = new ObjectOpenHashSet<>();
+            for (int i = 0; i < 10; i++) {
+                var builder = MolangRuntime.runtime();
+                builder.setVariable("particle_random_1", (float) Math.random());
+                builder.setVariable("particle_random_2", (float) Math.random());
+                builder.setVariable("particle_random_3", (float) Math.random());
+                builder.setVariable("particle_random_4", (float) Math.random());
+                var runtime = builder.create();
 
-            if (billboard != null && billboard.uv.uv != null) {
-                boolean texel = billboard.uv.textureWidth != 1 && billboard.uv.textureHeight != 1;
-                float xs = texel ? 1.f : billboard.uv.textureWidth;
-                float ys = texel ? 1.f : billboard.uv.textureHeight;
+                if (billboard != null && billboard.uv.uv != null) {
+                    boolean texel = billboard.uv.textureWidth != 1 && billboard.uv.textureHeight != 1;
+                    float xs = texel ? 1.f : billboard.uv.textureWidth;
+                    float ys = texel ? 1.f : billboard.uv.textureHeight;
 
-                var x = (int) (runtime.resolve(billboard.uv.uv[0]) * xs);
-                var y = (int) (runtime.resolve(billboard.uv.uv[1]) * ys);
-                var w = (int) (runtime.resolve(billboard.uv.uvSize[0]) * xs);
-                var h = (int) (runtime.resolve(billboard.uv.uvSize[1]) * ys);
-                Vector4i n = new Vector4i(x,y,w,h);
-                if (vecs.contains(n))
-                    continue;
+                    var x = (int) (runtime.resolve(billboard.uv.uv[0]) * xs);
+                    var y = (int) (runtime.resolve(billboard.uv.uv[1]) * ys);
+                    var w = (int) (runtime.resolve(billboard.uv.uvSize[0]) * xs);
+                    var h = (int) (runtime.resolve(billboard.uv.uvSize[1]) * ys);
+                    Vector4i n = new Vector4i(x,y,w,h);
+                    if (vecs.contains(n))
+                        continue;
 
-                vecs.add(n);
+                    vecs.add(n);
 
-                BufferedImage newImage = image.getSubimage(x, y, w, h);
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                if (ImageIO.write(newImage, "png", out)) {
-                    UUID id = UUID.randomUUID();
-                    String texturePath = "textures/item/" + id + ".png";
-                    String modelPath = "models/item/" + id + ".json";
-                    DATA.put(texturePath, out.toByteArray());
-                    DATA.put(modelPath, getModel("sandstorm:item/" + id, emissive));
+                    BufferedImage newImage = image.getSubimage(x, y, w, h);
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    if (ImageIO.write(newImage, "png", out)) {
+                        UUID id = UUID.randomUUID();
+                        String texturePath = "textures/item/" + id + ".png";
+                        String modelPath = "models/item/" + id + ".json";
+                        DATA.put(texturePath, out.toByteArray());
+                        DATA.put(modelPath, getModel("sandstorm:item/" + id, emissive));
 
-                    map.put(map.size(), PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, "item/" + id)));
+                        map.put(map.size(), PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, "item/" + id)));
+                    }
                 }
             }
+            POLYMER_MODEL_DATA.put(effectFile, map);
         }
-        POLYMER_MODEL_DATA.put(effectFile, map);
+        else {
+            UUID id = UUID.randomUUID();
+            String texturePath = "textures/item/" + id + ".png";
+            String modelPath = "models/item/" + id + ".json";
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            if (ImageIO.write(image, "png", out)) {
+                DATA.put(texturePath, out.toByteArray());
+                DATA.put(modelPath, getModel("sandstorm:item/" + id, emissive));
+
+                map.put(map.size(), PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, "item/" + id)));
+                POLYMER_MODEL_DATA.put(effectFile, map);
+            }
+        }
     }
 
     private static void handleLifetimeFlipbook(ParticleEffectFile effectFile, BufferedImage image, ParticleAppearanceBillboard billboard, boolean emissive) throws IOException, MolangRuntimeException {
