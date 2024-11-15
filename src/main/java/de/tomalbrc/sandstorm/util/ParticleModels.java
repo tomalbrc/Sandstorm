@@ -85,7 +85,7 @@ public class ParticleModels {
 
     private static void handleUV(ParticleEffectFile effectFile, BufferedImage image, ParticleAppearanceBillboard billboard, boolean emissive) throws IOException, MolangRuntimeException {
         Int2ObjectArrayMap<PolymerModelData> map = new Int2ObjectArrayMap<>();
-        if (billboard.uv != null) {
+        if (billboard != null && billboard.uv != null) {
             ObjectOpenHashSet<Vector4i> vecs = new ObjectOpenHashSet<>();
             for (int i = 0; i < 10; i++) {
                 var builder = MolangRuntime.runtime();
@@ -95,7 +95,7 @@ public class ParticleModels {
                 builder.setVariable("particle_random_4", (float) Math.random());
                 var runtime = builder.create();
 
-                if (billboard != null && billboard.uv.uv != null) {
+                if (billboard.uv.uv != null) {
                     boolean texel = billboard.uv.textureWidth != 1 && billboard.uv.textureHeight != 1;
                     float xs = texel ? 1.f : billboard.uv.textureWidth;
                     float ys = texel ? 1.f : billboard.uv.textureHeight;
