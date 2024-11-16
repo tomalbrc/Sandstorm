@@ -4,8 +4,6 @@ import de.tomalbrc.sandstorm.Sandstorm;
 import de.tomalbrc.sandstorm.component.ParticleComponents;
 import de.tomalbrc.sandstorm.component.particle.ParticleAppearanceBillboard;
 import de.tomalbrc.sandstorm.io.ParticleEffectFile;
-import eu.pb4.polymer.resourcepack.api.PolymerModelData;
-import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
 import gg.moonflower.molangcompiler.api.MolangEnvironment;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
@@ -29,10 +27,10 @@ import java.util.Map;
 import java.util.UUID;
 
 public class ParticleModels {
-    private static final Map<ParticleEffectFile, Int2ObjectArrayMap<PolymerModelData>> POLYMER_MODEL_DATA = new Object2ObjectOpenHashMap<>();
+    private static final Map<ParticleEffectFile, Int2ObjectArrayMap<ModelData>> POLYMER_MODEL_DATA = new Object2ObjectOpenHashMap<>();
     private static final Map<String, byte[]> DATA = new Object2ObjectOpenHashMap<>();
 
-    public static PolymerModelData modelData(ParticleEffectFile effectFile, int flipbookRnd, float normalizedLifetime, MolangEnvironment environment) throws MolangRuntimeException {
+    public static ModelData modelData(ParticleEffectFile effectFile, int flipbookRnd, float normalizedLifetime, MolangEnvironment environment) throws MolangRuntimeException {
         var billboard = effectFile.effect.components.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD);
         var map = POLYMER_MODEL_DATA.get(effectFile);
         if (billboard != null && billboard.uv != null && billboard.uv.flipbook != null && billboard.uv.flipbook.stretch_to_lifetime) {
@@ -40,7 +38,7 @@ public class ParticleModels {
 
             int rndIndex = flipbookRnd*1000;
             boolean containsRndIndex = false;
-            for (Int2ObjectMap.Entry<PolymerModelData> entry : map.int2ObjectEntrySet()) {
+            for (Int2ObjectMap.Entry<ModelData> entry : map.int2ObjectEntrySet()) {
                 if (entry.getIntKey() == rndIndex) {
                     containsRndIndex = true;
                     break;
@@ -54,11 +52,11 @@ public class ParticleModels {
         return map.get(map.keySet().toIntArray()[idx]);
     }
 
-    public static PolymerModelData modelData(ParticleEffectFile effectFile, int flipbookRnd, int index) {
+    public static ModelData modelData(ParticleEffectFile effectFile, int flipbookRnd, int index) {
         var list = POLYMER_MODEL_DATA.get(effectFile);
         int rndIndex = flipbookRnd*1000;
         boolean containsRndIndex = false;
-        for (Int2ObjectMap.Entry<PolymerModelData> entry : list.int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<ModelData> entry : list.int2ObjectEntrySet()) {
             if (entry.getIntKey() == rndIndex) {
                 containsRndIndex = true;
                 break;
@@ -84,7 +82,7 @@ public class ParticleModels {
     }
 
     private static void handleUV(ParticleEffectFile effectFile, BufferedImage image, ParticleAppearanceBillboard billboard, boolean emissive) throws IOException, MolangRuntimeException {
-        Int2ObjectArrayMap<PolymerModelData> map = new Int2ObjectArrayMap<>();
+        Int2ObjectArrayMap<ModelData> map = new Int2ObjectArrayMap<>();
         if (billboard != null && billboard.uv != null) {
             ObjectOpenHashSet<Vector4i> vecs = new ObjectOpenHashSet<>();
             for (int i = 0; i < 10; i++) {
@@ -119,7 +117,7 @@ public class ParticleModels {
                         DATA.put(texturePath, out.toByteArray());
                         DATA.put(modelPath, getModel("sandstorm:item/" + id, emissive));
 
-                        map.put(map.size(), PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, "item/" + id)));
+                        map.put(map.size(), new ModelData(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, "item/" + id)));
                     }
                 }
             }
@@ -135,7 +133,7 @@ public class ParticleModels {
                 DATA.put(texturePath, out.toByteArray());
                 DATA.put(modelPath, getModel("sandstorm:item/" + id, emissive));
 
-                map.put(map.size(), PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, "item/" + id)));
+                map.put(map.size(), new ModelData(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, "item/" + id)));
                 POLYMER_MODEL_DATA.put(effectFile, map);
             }
         }
@@ -150,7 +148,7 @@ public class ParticleModels {
             ParticleAppearanceBillboard.Flipbook flipbook = billboard.uv.flipbook;
             int maxFrame = (int) flipbook.max_frame.getConstant();
 
-            Int2ObjectArrayMap<PolymerModelData> map = new Int2ObjectArrayMap<>();
+            Int2ObjectArrayMap<ModelData> map = new Int2ObjectArrayMap<>();
             ObjectOpenHashSet<Vector2i> vecs = new ObjectOpenHashSet<>();
             int realI = 0;
             for (int randomIterator = 0; randomIterator < 10; randomIterator++) {
@@ -185,7 +183,7 @@ public class ParticleModels {
                         DATA.put(texturePath, out.toByteArray());
                         DATA.put(modelPath, getModel("sandstorm:item/" + id, emissive));
 
-                        map.put(realI*1000 + currentFrame, PolymerResourcePackUtils.requestModel(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, "item/" + id)));
+                        map.put(realI*1000 + currentFrame, new ModelData(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, "item/" + id)));
                     }
                 } // fori
 

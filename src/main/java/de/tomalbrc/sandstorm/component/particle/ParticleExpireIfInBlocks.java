@@ -26,7 +26,7 @@ public class ParticleExpireIfInBlocks implements ParticleComponent<Block[]> {
 
             for (int i = 0; i < jsonArray.size(); i++) {
                 if (jsonArray.isJsonPrimitive()) {
-                    component.value[i] = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(jsonArray.get(i).getAsString()));
+                    component.value[i] = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(jsonArray.get(i).getAsString())).orElseThrow().value();
                 }
             }
 
