@@ -126,8 +126,8 @@ public class ShapeUtil {
             float angle = (float) (Math.random() * 2 * Math.PI);
             float radius = disc.surfaceOnly ? r : (float) Math.random() * r;
 
-            float dx = (float) (Math.cos(angle) * radius);
-            float dy = (float) (Math.sin(angle) * radius);
+            float dx = (float) (Math.cos(angle) * radius*2.f);
+            float dy = (float) (Math.sin(angle) * radius*2.f);
 
             Vector3f pos = new Vector3f(dx, dy, 0);
             Quaternionf rotation = new Quaternionf().fromAxisAngleRad(nx, ny, nz, angle);
