@@ -254,9 +254,52 @@ public class ParticleElement extends ItemDisplayElement {
         }
     }
 
+    public void setPitch(float pitch) {
+        super.setPitch(pitch);
+        rotationDirty = isRotationDirty();
+    }
+
+    public void setYaw(float yaw) {
+        super.setYaw(yaw);
+        rotationDirty = isRotationDirty();
+    }
+
     public void asyncTick() {
-        this.sendPositionUpdates();
-        this.sendTrackerUpdates();
+        if (this.getHolder() == null) {
+            return;
+        }
+        Packet<ClientGamePacketListener> packet = null;
+        var pos = this.getCurrentPos();
+
+        if (pos.equals(this.lastSyncedPos)) {
+            return;
+        }
+
+        if (this.lastSyncedPos == null) {
+            packet = new ClientboundEntityPositionSyncPacket(this.getEntityId(), new PositionMoveRotation(pos, Vec3.ZERO, this.getYaw(), this.getPitch()), false);
+        } else {
+            packet = VirtualEntityUtils.createMovePacket(this.getEntityId(), this.lastSyncedPos, pos, this.rotationDirty, this.getYaw(), this.getPitch());
+        }
+
+        if (packet != null) {
+            if (!(packet instanceof ClientboundMoveEntityPacket.Rot)) {
+                this.lastSyncedPos = pos;
+            }
+        }
+
+        Packet<ClientGamePacketListener> packet2 = null;
+        if (this.dataTracker.isDirty()) {
+            var dirty = this.dataTracker.getDirtyEntries();
+            if (dirty != null) {
+                packet2 = new ClientboundSetEntityDataPacket(this.getEntityId(), dirty);
+            }
+        }
+
+        if (packet2 != null && packet != null) {
+            this.getHolder().sendPacket(new ClientboundBundlePacket(List.of(packet, packet2)));
+        } else if (packet != null || packet2 != null) {
+            this.getHolder().sendPacket(packet != null ? packet : packet2);
+        }
     }
 
     public void setPos(float d, float d2, float d3) {
