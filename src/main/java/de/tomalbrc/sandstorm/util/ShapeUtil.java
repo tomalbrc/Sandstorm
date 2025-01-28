@@ -5,6 +5,8 @@ import de.tomalbrc.sandstorm.polymer.ParticleEffectHolder;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 public class ShapeUtil {
     public static ParticleEffectHolder.InitialParticleData initialParticleData(MolangRuntime runtime, ParticleEffectHolder holder) throws MolangRuntimeException {
@@ -127,12 +129,11 @@ public class ShapeUtil {
             float dx = (float) (Math.cos(angle) * radius);
             float dy = (float) (Math.sin(angle) * radius);
 
-            // orthogonal vector
-            float ux = ny * nz - nx * nz; // cross prod
-            float uy = -nx * nz;
-            float uz = nx * ny;
+            Vector3f pos = new Vector3f(dx, dy, 0);
+            Quaternionf rotation = new Quaternionf().fromAxisAngleRad(nx, ny, nz, angle);
+            pos = pos.rotate(rotation);
 
-            var v = new Vec3(x, y, z).add(nx * dx + ux * dy, ny * dx + uy * dy, nz * dx + uz * dy);
+            var v = new Vec3(x, y, z).add(pos.x, pos.y, pos.z);
             var n = v.normalize();
             if (disc.directionList != null) {
                 var dlx = runtime.resolve(disc.directionList[0]);
