@@ -9,12 +9,18 @@ import de.tomalbrc.sandstorm.component.particle.ParticleMotionCollision;
 import de.tomalbrc.sandstorm.component.particle.ParticleMotionDynamic;
 import de.tomalbrc.sandstorm.component.particle.ParticleMotionParametric;
 import de.tomalbrc.sandstorm.util.ParticleModels;
+import eu.pb4.polymer.virtualentity.api.VirtualEntityUtils;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBundlePacket;
+import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.util.Brightness;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Display;
@@ -58,6 +64,7 @@ public class ParticleElement extends ItemDisplayElement {
 
     private final ParticleEffectHolder parent;
     private ItemStack item;
+    private boolean rotationDirty;
 
     public ParticleElement(ParticleEffectHolder particleEffectHolder) throws MolangRuntimeException {
         this.parent = particleEffectHolder;
@@ -269,16 +276,20 @@ public class ParticleElement extends ItemDisplayElement {
         }
 
         if (this.lastSyncedPos == null) {
-            packet = new ClientboundEntityPositionSyncPacket(this.getEntityId(), new PositionMoveRotation(pos, Vec3.ZERO, this.getYaw(), this.getPitch()), false);
+            var i = Mth.floor(getYaw() * 256.0F / 360.0F);
+            var j = Mth.floor(getPitch() * 256.0F / 360.0F);
+            packet = VirtualEntityUtils.createSimpleMovePacket(this.getEntityId(), pos, (byte) i, (byte) j);
         } else {
             packet = VirtualEntityUtils.createMovePacket(this.getEntityId(), this.lastSyncedPos, pos, this.rotationDirty, this.getYaw(), this.getPitch());
         }
 
         if (packet != null) {
+            this.getHolder().sendPacket(packet);
             if (!(packet instanceof ClientboundMoveEntityPacket.Rot)) {
                 this.lastSyncedPos = pos;
             }
         }
+        this.rotationDirty = false;
 
         Packet<ClientGamePacketListener> packet2 = null;
         if (this.dataTracker.isDirty()) {
