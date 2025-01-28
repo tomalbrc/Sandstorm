@@ -128,7 +128,7 @@ public class ParticleElement extends ItemDisplayElement {
         rt.setVariable("particle_random_3", this.random_3);
         rt.setVariable("particle_random_4", this.random_4);
 
-        rt.setVariable("particle_age", this.age * Sandstorm.TIME_SCALE);
+        rt.setVariable("particle_age", scaledAge());
         rt.setVariable("particle_lifetime", this.maxLifetime);
     }
 
@@ -327,7 +327,7 @@ public class ParticleElement extends ItemDisplayElement {
             if (billboard.uv.flipbook.stretch_to_lifetime) {
                 float nLifetime = scaledAge() / this.maxLifetime;
                 var newStack = ParticleModels.modelData(this.parent.getEffectFile(), (int)(this.random_1*10), nLifetime, this.parent.runtime()).asItemStack();
-                if (Objects.equals(this.item.get(DataComponents.ITEM_MODEL), newStack.get(DataComponents.ITEM_MODEL))) {
+                if (!Objects.equals(this.item.get(DataComponents.ITEM_MODEL), newStack.get(DataComponents.ITEM_MODEL))) {
                     newStack.set(DataComponents.DYED_COLOR, this.item.get(DataComponents.DYED_COLOR));
                     this.item = newStack;
                     this.setItem(this.item);
