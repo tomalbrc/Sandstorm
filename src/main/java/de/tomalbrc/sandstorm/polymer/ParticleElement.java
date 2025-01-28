@@ -9,16 +9,20 @@ import de.tomalbrc.sandstorm.component.particle.ParticleMotionCollision;
 import de.tomalbrc.sandstorm.component.particle.ParticleMotionDynamic;
 import de.tomalbrc.sandstorm.component.particle.ParticleMotionParametric;
 import de.tomalbrc.sandstorm.util.ParticleModels;
+import eu.pb4.polymer.virtualentity.api.VirtualEntityUtils;
 import eu.pb4.polymer.virtualentity.api.elements.ItemDisplayElement;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.*;
 import net.minecraft.util.Brightness;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.block.state.BlockState;
@@ -56,6 +60,8 @@ public class ParticleElement extends ItemDisplayElement {
     protected final float random_2 = (float) Math.random();
     protected final float random_3 = (float) Math.random();
     protected final float random_4 = (float) Math.random();
+
+    private boolean rotationDirty = true;
 
     private final ParticleEffectHolder parent;
     private ItemStack item;

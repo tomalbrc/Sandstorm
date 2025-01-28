@@ -4,7 +4,11 @@ import de.tomalbrc.sandstorm.Sandstorm;
 import de.tomalbrc.sandstorm.component.ParticleComponents;
 import de.tomalbrc.sandstorm.component.particle.ParticleAppearanceBillboard;
 import de.tomalbrc.sandstorm.io.ParticleEffectFile;
+import eu.pb4.polymer.resourcepack.api.AssetPaths;
 import eu.pb4.polymer.resourcepack.api.ResourcePackBuilder;
+import eu.pb4.polymer.resourcepack.extras.api.format.item.ItemAsset;
+import eu.pb4.polymer.resourcepack.extras.api.format.item.model.BasicItemModel;
+import eu.pb4.polymer.resourcepack.extras.api.format.item.tint.DyeTintSource;
 import gg.moonflower.molangcompiler.api.MolangEnvironment;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
@@ -23,12 +27,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class ParticleModels {
     private static final Map<ParticleEffectFile, Int2ObjectArrayMap<ModelData>> POLYMER_MODEL_DATA = new Object2ObjectOpenHashMap<>();
-    private static final Map<String, byte[]> DATA = new Object2ObjectOpenHashMap<>();
+    private static final Map<ResourceLocation, byte[]> DATA = new Object2ObjectOpenHashMap<>();
+    private static final Map<String, byte[]> TEXTURE_DATA = new Object2ObjectOpenHashMap<>();
 
     public static ModelData modelData(ParticleEffectFile effectFile, int flipbookRnd, float normalizedLifetime, MolangEnvironment environment) throws MolangRuntimeException {
         var billboard = effectFile.effect.components.get(ParticleComponents.PARTICLE_APPEARANCE_BILLBOARD);
@@ -66,7 +72,11 @@ public class ParticleModels {
     }
 
     public static void addToResourcePack(ResourcePackBuilder builder) {
-        for (Map.Entry<String, byte[]> entry : DATA.entrySet()) {
+        for (Map.Entry<ResourceLocation, byte[]> entry : DATA.entrySet()) {
+            builder.addData(AssetPaths.itemModel(entry.getKey()), entry.getValue());
+            builder.addData(AssetPaths.itemAsset(entry.getKey()), new ItemAsset(new BasicItemModel(entry.getKey().withPrefix("item/"), List.of(new DyeTintSource(0xFFFFFF))), ItemAsset.Properties.DEFAULT).toBytes());
+        }
+        for (Map.Entry<String, byte[]> entry : TEXTURE_DATA.entrySet()) {
             builder.addData("assets/sandstorm/" + entry.getKey(), entry.getValue());
         }
         DATA.clear();
@@ -114,8 +124,8 @@ public class ParticleModels {
                         UUID id = UUID.randomUUID();
                         String texturePath = "textures/item/" + id + ".png";
                         String modelPath = "models/item/" + id + ".json";
-                        DATA.put(texturePath, out.toByteArray());
-                        DATA.put(modelPath, getModel("sandstorm:item/" + id, emissive));
+                        TEXTURE_DATA.put(texturePath, out.toByteArray());
+                        DATA.put(ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, id.toString()), getModel("sandstorm:item/" + id, emissive));
 
                         map.put(map.size(), new ModelData(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, id.toString())));
                     }
@@ -130,8 +140,8 @@ public class ParticleModels {
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             if (ImageIO.write(image, "png", out)) {
-                DATA.put(texturePath, out.toByteArray());
-                DATA.put(modelPath, getModel("sandstorm:item/" + id, emissive));
+                TEXTURE_DATA.put(texturePath, out.toByteArray());
+                DATA.put(ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, id.toString()), getModel("sandstorm:item/" + id, emissive));
 
                 map.put(map.size(), new ModelData(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, id.toString())));
                 POLYMER_MODEL_DATA.put(effectFile, map);
@@ -180,8 +190,8 @@ public class ParticleModels {
                         UUID id = UUID.randomUUID();
                         String texturePath = "textures/item/" + id + ".png";
                         String modelPath = "models/item/" + id + ".json";
-                        DATA.put(texturePath, out.toByteArray());
-                        DATA.put(modelPath, getModel("sandstorm:item/" + id, emissive));
+                        TEXTURE_DATA.put(texturePath, out.toByteArray());
+                        DATA.put(ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, id.toString()), getModel("sandstorm:item/" + id, emissive));
 
                         map.put(realI*1000 + currentFrame, new ModelData(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID,id.toString())));
                     }
