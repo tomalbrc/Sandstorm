@@ -28,6 +28,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ParticleElement extends ItemDisplayElement {
     private static final double MAX_COLLISION_VELOCITY = Mth.square(100.0);
@@ -326,7 +327,7 @@ public class ParticleElement extends ItemDisplayElement {
             if (billboard.uv.flipbook.stretch_to_lifetime) {
                 float nLifetime = scaledAge() / this.maxLifetime;
                 var newStack = ParticleModels.modelData(this.parent.getEffectFile(), (int)(this.random_1*10), nLifetime, this.parent.runtime()).asItemStack();
-                if (this.item.get(DataComponents.CUSTOM_MODEL_DATA) != newStack.get(DataComponents.CUSTOM_MODEL_DATA)) {
+                if (Objects.equals(this.item.get(DataComponents.ITEM_MODEL), newStack.get(DataComponents.ITEM_MODEL))) {
                     newStack.set(DataComponents.DYED_COLOR, this.item.get(DataComponents.DYED_COLOR));
                     this.item = newStack;
                     this.setItem(this.item);
@@ -336,7 +337,7 @@ public class ParticleElement extends ItemDisplayElement {
                 var max = (int)this.parent.runtime().resolve(billboard.uv.flipbook.max_frame);
                 int index = billboard.uv.flipbook.loop ? frame % max : Math.min(frame, max - 1);
                 var newStack = ParticleModels.modelData(this.parent.getEffectFile(), (int)(this.random_1*10), index).asItemStack();
-                if (this.item.get(DataComponents.CUSTOM_MODEL_DATA) != newStack.get(DataComponents.CUSTOM_MODEL_DATA)) {
+                if (!Objects.equals(this.item.get(DataComponents.ITEM_MODEL), newStack.get(DataComponents.ITEM_MODEL))) {
                     newStack.set(DataComponents.DYED_COLOR, this.item.get(DataComponents.DYED_COLOR));
                     this.item = newStack;
                     this.setItem(this.item);

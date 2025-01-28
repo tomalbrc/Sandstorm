@@ -133,7 +133,7 @@ public class ParticleModels {
                 DATA.put(texturePath, out.toByteArray());
                 DATA.put(modelPath, getModel("sandstorm:item/" + id, emissive));
 
-                map.put(map.size(), new ModelData(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, "item/" + id)));
+                map.put(map.size(), new ModelData(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, id.toString())));
                 POLYMER_MODEL_DATA.put(effectFile, map);
             }
         }
@@ -183,7 +183,7 @@ public class ParticleModels {
                         DATA.put(texturePath, out.toByteArray());
                         DATA.put(modelPath, getModel("sandstorm:item/" + id, emissive));
 
-                        map.put(realI*1000 + currentFrame, new ModelData(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, "item/" + id)));
+                        map.put(realI*1000 + currentFrame, new ModelData(Items.LEATHER_HORSE_ARMOR, ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID,id.toString())));
                     }
                 } // fori
 
