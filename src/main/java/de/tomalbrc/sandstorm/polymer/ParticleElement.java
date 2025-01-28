@@ -284,7 +284,6 @@ public class ParticleElement extends ItemDisplayElement {
         }
 
         if (packet != null) {
-            this.getHolder().sendPacket(packet);
             if (!(packet instanceof ClientboundMoveEntityPacket.Rot)) {
                 this.lastSyncedPos = pos;
             }
