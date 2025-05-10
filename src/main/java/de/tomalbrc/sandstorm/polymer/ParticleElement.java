@@ -357,7 +357,7 @@ public class ParticleElement extends ItemDisplayElement {
         this.setLeftRotation(new Quaternionf().rotateZ(this.roll * Mth.DEG_TO_RAD));
 
         if (this.getItem() != this.item) {
-            this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(0xFF_FF_FF, false));
+            this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(0xFF_FF_FF));
             this.setItem(this.item);
         }
 
@@ -397,11 +397,11 @@ public class ParticleElement extends ItemDisplayElement {
         if (this.parent.has(ParticleComponents.PARTICLE_APPEARANCE_TINTING)) {
             var tinting = this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_TINTING);
             if (tinting.isRGBA()) {
-                this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(tinting.rgba(this.parent.runtime()), false));
+                this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(tinting.rgba(this.parent.runtime())));
             }
             else {
                 var color = this.parent.get(ParticleComponents.PARTICLE_APPEARANCE_TINTING).color.color(this.parent.runtime());
-                this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(color, true));
+                this.item.set(DataComponents.DYED_COLOR, new DyedItemColor(color));
             }
             this.setItem(this.item);
         }
