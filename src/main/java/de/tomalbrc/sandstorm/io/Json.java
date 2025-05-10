@@ -20,16 +20,18 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
 
+import javax.naming.spi.ResolveResult;
 import java.lang.reflect.Type;
 
 public class Json {
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
-            .registerTypeHierarchyAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
+            .registerTypeHierarchyAdapter(ResourceLocation.class, new ResourceLocationSerializer())
             .registerTypeHierarchyAdapter(ItemDisplayContext.class, new ItemDisplayContextDeserializer())
             .registerTypeHierarchyAdapter(Block.class, new RegistryDeserializer<>(BuiltInRegistries.BLOCK))
             .registerTypeHierarchyAdapter(Item.class, new RegistryDeserializer<>(BuiltInRegistries.ITEM))
@@ -114,6 +116,16 @@ public class Json {
         @Override
         public T deserialize(JsonElement element, Type type, JsonDeserializationContext context) throws JsonParseException {
             return this.registry.get(ResourceLocation.parse(element.getAsString())).orElseThrow().value();
+        }
+    }
+
+    private static class ResourceLocationSerializer implements JsonDeserializer<ResourceLocation>, JsonSerializer<ResourceLocation> {
+        public ResourceLocation deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+            return ResourceLocation.parse(GsonHelper.convertToString(jsonElement, "location"));
+        }
+
+        public JsonElement serialize(ResourceLocation identifier, Type type, JsonSerializationContext jsonSerializationContext) {
+            return new JsonPrimitive(identifier.toString());
         }
     }
 }

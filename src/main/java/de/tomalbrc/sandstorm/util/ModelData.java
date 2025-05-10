@@ -10,7 +10,7 @@ public record ModelData(Item item, ResourceLocation model) {
     public ItemStack asItemStack() {
         var itemStack = item.getDefaultInstance();
         itemStack.set(DataComponents.ITEM_MODEL, model);
-        itemStack.set(DataComponents.DYED_COLOR, new DyedItemColor(0xFFFFFF, false));
+        itemStack.set(DataComponents.DYED_COLOR, new DyedItemColor(0xFFFFFF));
         return itemStack;
     }
 }

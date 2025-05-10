@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.7-SNAPSHOT'
+    id 'fabric-loom' version '1.10-SNAPSHOT'
     id 'com.github.johnrengelman.shadow' version "8.1.1"
     id 'maven-publish'
 }
@@ -45,7 +45,7 @@ dependencies {
     }
 
     // Permission API
-    modImplementation shade('me.lucko:fabric-permissions-api:0.3.2-SNAPSHOT') {
+    modImplementation shade('me.lucko:fabric-permissions-api:0.3.3') {
         exclude group: "net.fabricmc", module: "fabric-loader"
     }
 }
