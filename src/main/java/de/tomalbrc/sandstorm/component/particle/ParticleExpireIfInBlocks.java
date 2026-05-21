@@ -3,7 +3,7 @@ package de.tomalbrc.sandstorm.component.particle;
 import com.google.gson.*;
 import de.tomalbrc.sandstorm.component.ParticleComponent;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 
 import java.lang.reflect.Type;
@@ -26,7 +26,7 @@ public class ParticleExpireIfInBlocks implements ParticleComponent<Block[]> {
 
             for (int i = 0; i < jsonArray.size(); i++) {
                 if (jsonArray.isJsonPrimitive()) {
-                    component.value[i] = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(jsonArray.get(i).getAsString())).orElseThrow().value();
+                    component.value[i] = BuiltInRegistries.BLOCK.get(Identifier.parse(jsonArray.get(i).getAsString())).orElseThrow().value();
                 }
             }
 

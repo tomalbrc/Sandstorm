@@ -10,10 +10,10 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.joml.Vector2f;
 
 import java.util.List;
@@ -28,8 +28,8 @@ public class SandstormCommand {
             return Command.SINGLE_SUCCESS;
         });
 
-        sandstormNode.then(argument("effect", ResourceLocationArgument.id()).suggests(new ParticleSuggestionProvider()).executes(SandstormCommand::execute));
-        sandstormNode.then(argument("effect", ResourceLocationArgument.id()).suggests(new ParticleSuggestionProvider()).then(argument("position", Vec3Argument.vec3()).executes(SandstormCommand::executeAt)));
+        sandstormNode.then(argument("effect", IdentifierArgument.id()).suggests(new ParticleSuggestionProvider()).executes(SandstormCommand::execute));
+        sandstormNode.then(argument("effect", IdentifierArgument.id()).suggests(new ParticleSuggestionProvider()).then(argument("position", Vec3Argument.vec3()).executes(SandstormCommand::executeAt)));
         sandstormNode.then(literal("clear").executes(SandstormCommand::clear));
 
         dispatcher.register(sandstormNode);
@@ -47,13 +47,13 @@ public class SandstormCommand {
     }
 
     private static int execute(CommandContext<CommandSourceStack> context) {
-        ResourceLocation effectString = ResourceLocationArgument.getId(context, "effect");
+        Identifier effectString = IdentifierArgument.getId(context, "effect");
         ParticleUtil.emit(effectString, context.getSource().getLevel(), context.getSource().getPosition(), new Vector2f(context.getSource().getRotation().x, context.getSource().getRotation().y));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int executeAt(CommandContext<CommandSourceStack> context) {
-        ResourceLocation effectString = ResourceLocationArgument.getId(context, "effect");
+        Identifier effectString = IdentifierArgument.getId(context, "effect");
         ParticleUtil.emit(effectString, context.getSource().getLevel(), Vec3Argument.getVec3(context, "position"), new Vector2f(0, 0));
         return Command.SINGLE_SUCCESS;
     }

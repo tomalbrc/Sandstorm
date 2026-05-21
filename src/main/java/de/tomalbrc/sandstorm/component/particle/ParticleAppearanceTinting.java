@@ -2,11 +2,14 @@ package de.tomalbrc.sandstorm.component.particle;
 
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
+import com.mojang.serialization.JsonOps;
 import de.tomalbrc.sandstorm.component.ParticleComponent;
 import de.tomalbrc.sandstorm.component.misc.ColorConfig;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.ColorRGBA;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -50,7 +53,11 @@ public class ParticleAppearanceTinting implements ParticleComponent<ParticleAppe
                 result.color = null;
                 List<MolangExpression> rgbaList = new ArrayList<>();
                 for (JsonElement element : colorElement.getAsJsonArray()) {
-                    rgbaList.add(context.deserialize(element, MolangExpression.class));
+                    if (element.getAsJsonPrimitive().getAsString().startsWith("#")) {
+                        rgbaList.add(MolangExpression.of(0xFFFFFF));
+                    } else {
+                        rgbaList.add(context.deserialize(element, MolangExpression.class));
+                    }
                 }
                 result.rgba = rgbaList;
             } else {

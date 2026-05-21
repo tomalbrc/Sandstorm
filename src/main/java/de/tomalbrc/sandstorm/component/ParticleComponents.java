@@ -3,7 +3,7 @@ package de.tomalbrc.sandstorm.component;
 import de.tomalbrc.sandstorm.Sandstorm;
 import de.tomalbrc.sandstorm.component.emitter.*;
 import de.tomalbrc.sandstorm.component.particle.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 @SuppressWarnings("unused")
 public class ParticleComponents {
@@ -40,11 +40,11 @@ public class ParticleComponents {
     public static final ParticleComponentType<ParticleAppearanceTinting> PARTICLE_APPEARANCE_TINTING = registerVanillaComponent("particle_appearance_tinting", ParticleAppearanceTinting.class);
 
     private static <T extends ParticleComponent<?>, E> ParticleComponentType<T> registerVanillaComponent(String name, Class<T> type) {
-        return ParticleComponentRegistry.registerComponent(ResourceLocation.withDefaultNamespace(name), type);
+        return ParticleComponentRegistry.registerComponent(Identifier.withDefaultNamespace(name), type);
     }
 
     private static <T extends ParticleComponent<?>, E> ParticleComponentType<T> registerComponent(String name, Class<T> type) {
-        return ParticleComponentRegistry.registerComponent(ResourceLocation.fromNamespaceAndPath(Sandstorm.MOD_ID, name), type);
+        return ParticleComponentRegistry.registerComponent(Identifier.fromNamespaceAndPath(Sandstorm.MOD_ID, name), type);
     }
 
     public static void init() {

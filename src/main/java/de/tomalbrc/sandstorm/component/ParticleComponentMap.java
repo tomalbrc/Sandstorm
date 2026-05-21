@@ -3,7 +3,7 @@ package de.tomalbrc.sandstorm.component;
 import com.google.gson.*;
 import de.tomalbrc.sandstorm.Sandstorm;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
@@ -50,11 +50,11 @@ public class ParticleComponentMap {
             JsonObject object = jsonElement.getAsJsonObject();
             ParticleComponentMap particleComponentMap = new ParticleComponentMap();
             for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
-                ResourceLocation resourceLocation;
+                Identifier resourceLocation;
                 if (entry.getKey().contains(":"))
-                    resourceLocation = ResourceLocation.parse(entry.getKey());
+                    resourceLocation = Identifier.parse(entry.getKey());
                 else
-                    resourceLocation = ResourceLocation.withDefaultNamespace(entry.getKey());
+                    resourceLocation = Identifier.withDefaultNamespace(entry.getKey());
 
                 ParticleComponentType<ParticleComponent<?>> componentType = ParticleComponentRegistry.getType(resourceLocation);
 

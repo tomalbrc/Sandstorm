@@ -30,7 +30,6 @@ public class Particles {
             loadEffect("/particle/flame.json");
             loadEffect("/particle/combocurve.json");
             loadEffect("/particle/rain.json");
-            loadEffect("/particle/event.json");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -47,10 +46,11 @@ public class Particles {
         return loadEffect(effectFile, imageContents);
     }
 
-    public static ParticleEffectFile loadEffect(ParticleEffectFile effectFile, InputStream imageContents) {
+    public static ParticleEffectFile loadEffect(ParticleEffectFile effectFile, InputStream cont) {
         try {
-            ParticleModels.addFrom(effectFile, imageContents);
+            ParticleModels.addFrom(effectFile, cont);
         } catch (MolangRuntimeException | IOException e) {
+            Sandstorm.LOGGER.info(effectFile.effect.description.identifier.toString());
             throw new RuntimeException(e);
         }
 

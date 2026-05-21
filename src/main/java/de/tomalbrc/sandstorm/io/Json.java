@@ -18,7 +18,7 @@ import gg.moonflower.molangcompiler.api.MolangExpression;
 import gg.moonflower.molangcompiler.api.exception.MolangSyntaxException;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
 public class Json {
     public static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
-            .registerTypeHierarchyAdapter(ResourceLocation.class, new ResourceLocationSerializer())
+            .registerTypeHierarchyAdapter(Identifier.class, new IdentifierSerializer())
             .registerTypeHierarchyAdapter(ItemDisplayContext.class, new ItemDisplayContextDeserializer())
             .registerTypeHierarchyAdapter(Block.class, new RegistryDeserializer<>(BuiltInRegistries.BLOCK))
             .registerTypeHierarchyAdapter(Item.class, new RegistryDeserializer<>(BuiltInRegistries.ITEM))
@@ -53,7 +53,12 @@ public class Json {
         @Override
         public String[] deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             if (json.isJsonArray()) {
-                return context.deserialize(json, String[].class);
+                var arr = json.getAsJsonArray();
+                String[] res = new String[arr.size()];
+                for (int i = 0; i < arr.size(); i++) {
+                    res[i] = arr.get(i).getAsJsonPrimitive().getAsString();
+                }
+                return res;
             } else if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
                 return new String[]{json.getAsString()};
             } else {
@@ -115,16 +120,16 @@ public class Json {
     private record RegistryDeserializer<T>(Registry<T> registry) implements JsonDeserializer<T> {
         @Override
         public T deserialize(JsonElement element, Type type, JsonDeserializationContext context) throws JsonParseException {
-            return this.registry.get(ResourceLocation.parse(element.getAsString())).orElseThrow().value();
+            return this.registry.get(Identifier.parse(element.getAsString())).orElseThrow().value();
         }
     }
 
-    private static class ResourceLocationSerializer implements JsonDeserializer<ResourceLocation>, JsonSerializer<ResourceLocation> {
-        public ResourceLocation deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-            return ResourceLocation.parse(GsonHelper.convertToString(jsonElement, "location"));
+    private static class IdentifierSerializer implements JsonDeserializer<Identifier>, JsonSerializer<Identifier> {
+        public Identifier deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+            return Identifier.parse(GsonHelper.convertToString(jsonElement, "location"));
         }
 
-        public JsonElement serialize(ResourceLocation identifier, Type type, JsonSerializationContext jsonSerializationContext) {
+        public JsonElement serialize(Identifier identifier, Type type, JsonSerializationContext jsonSerializationContext) {
             return new JsonPrimitive(identifier.toString());
         }
     }

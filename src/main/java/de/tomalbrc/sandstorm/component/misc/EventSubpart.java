@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
 import gg.moonflower.molangcompiler.api.MolangExpression;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 import java.util.Random;
@@ -53,7 +53,7 @@ public class EventSubpart {
         return null;
     }
 
-    public record ParticleEffect(ResourceLocation effect,
+    public record ParticleEffect(Identifier effect,
                           Type type,
                           @SerializedName("pre_effect_expression")
                           MolangExpression preEffectExpression) {

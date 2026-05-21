@@ -288,8 +288,8 @@ public class ParticleElement extends ItemDisplayElement {
         }
 
         Packet<ClientGamePacketListener> packet2 = null;
-        if (this.dataTracker.isDirty()) {
-            var dirty = this.dataTracker.getDirtyEntries();
+        if (this.getSyncedData().isDirty()) {
+            var dirty = this.getSyncedData().getDirtyEntries();
             if (dirty != null) {
                 packet2 = new ClientboundSetEntityDataPacket(this.getEntityId(), dirty);
             }

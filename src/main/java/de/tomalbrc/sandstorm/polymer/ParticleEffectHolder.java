@@ -16,7 +16,7 @@ import eu.pb4.polymer.virtualentity.api.elements.VirtualElement;
 import gg.moonflower.molangcompiler.api.MolangRuntime;
 import gg.moonflower.molangcompiler.api.exception.MolangRuntimeException;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -115,7 +115,7 @@ public class ParticleEffectHolder extends ElementHolder implements ParticleCompo
                         }
                         if (this.getAttachment() != null && this.getAttachment().getWorld() != null) {
                             if (subpart.soundEffect != null) {
-                                this.getAttachment().getWorld().playSound(null, pos.x, pos.y, pos.z, SoundEvent.createVariableRangeEvent(ResourceLocation.parse(subpart.soundEffect.eventName())), SoundSource.AMBIENT);
+                                this.getAttachment().getWorld().playSound(null, pos.x, pos.y, pos.z, SoundEvent.createVariableRangeEvent(Identifier.parse(subpart.soundEffect.eventName())), SoundSource.AMBIENT);
                             }
                             if (subpart.particleEffect != null) {
                                 if (this.getAttachment() instanceof EntityAttachment entityAttachment && subpart.particleEffect.type() != null && subpart.particleEffect.type() == EventSubpart.ParticleEffect.Type.EMITTER_BOUND) {
