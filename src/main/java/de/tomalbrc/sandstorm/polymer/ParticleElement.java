@@ -28,6 +28,7 @@ import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -315,7 +316,7 @@ public class ParticleElement extends ItemDisplayElement {
         if (this.physics) {
             if ((nx != 0.0 || ny != 0.0 || nz != 0.0) && nx * nx + ny * ny + nz * nz < MAX_COLLISION_VELOCITY) {
                 var bb = this.getBoundingBox();
-                Vec3 correctedSpeedFactor = Entity.collideBoundingBox(null, new Vec3(nx, ny, nz), bb, this.parent.getAttachment().getWorld(), List.of());
+                Vec3 correctedSpeedFactor = Entity.collideBoundingBox((CollisionContext) null, new Vec3(nx, ny, nz), bb, this.parent.getAttachment().getWorld(), List.of());
                 boolean xc = correctedSpeedFactor.x != nx;
                 boolean yc = correctedSpeedFactor.y != ny;
                 boolean zc = correctedSpeedFactor.z != nz;
