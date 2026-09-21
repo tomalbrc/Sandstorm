@@ -22,7 +22,7 @@ import net.minecraft.util.Brightness;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.PositionMoveRotation;
+import net.minecraft.world.entity.PositionPath;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.block.state.BlockState;
@@ -277,7 +277,7 @@ public class ParticleElement extends ItemDisplayElement {
         }
 
         if (this.lastSyncedPos == null) {
-            packet = new ClientboundEntityPositionSyncPacket(this.getEntityId(), new PositionMoveRotation(pos, Vec3.ZERO, this.getYaw(), this.getPitch()), false);
+            packet = new ClientboundEntityPositionSyncPacket(this.getEntityId(), new PositionPath.Linear(pos), this.getYaw(), this.getPitch(), false);
         } else {
             packet = VirtualEntityUtils.createMovePacket(this.getEntityId(), this.lastSyncedPos, pos, this.rotationDirty, this.getYaw(), this.getPitch());
         }
